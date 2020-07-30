@@ -29,7 +29,8 @@ class Player {
   SkillStatus get skillStatus => _skillStatus;
   set skillStatus(status) => _skillStatus;
 
-  Player({this.uid, int seatNumber}) {
+  Player({this.uid, int seatNumber, Role role}) {
+    _role = role;
     _seatNumber = seatNumber;
     _status = Status.alive;
     _skillStatus = SkillStatus.available;

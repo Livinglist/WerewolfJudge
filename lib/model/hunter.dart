@@ -2,7 +2,7 @@ import 'god.dart';
 
 class Hunter extends God {
   Hunter() : super(roleName: '猎人') {
-    actionMessage = '你可以发动技能。';
+    actionMessage = '你的技能发动状态是';
   }
 
   @override
@@ -23,7 +23,5 @@ class Hunter extends God {
   String get actionResult => super.actionResult;
 
   @override
-  String action(Map<int, Player> seatNumToPlayerMap,int target) {
-
-  }
+  String action(Map<int, Player> seatNumToPlayerMap, int target) {}
 }

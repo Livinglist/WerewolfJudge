@@ -19,6 +19,9 @@ const String roomStatus = 'roomStatus';
 const String playersKey = 'players';
 const String rolesKey = 'roles';
 const String actionsKey = 'actions';
+const String currentActionerIndexKey = 'currentActionerIndex';
+const String hasPosionKey = 'hasPoison';
+const String hasAntidoteKey = 'hasAntidote';
 
 class FirestoreProvider {
   static final instance = FirestoreProvider._();
@@ -47,12 +50,15 @@ class FirestoreProvider {
     } while (docSnap.exists && DateTime.fromMillisecondsSinceEpoch(docSnap.data[timestamp]).toLocal().difference(DateTime.now()).inHours <= 2);
 
     docRef.delete().whenComplete(() => docRef.setData({
+          hasPosionKey: true,
+          hasAntidoteKey: true,
           timestamp: DateTime.now().toUtc().millisecondsSinceEpoch,
           totalSeats: numOfSeats,
           hostUidKey: uid,
           roomStatus: RoomStatus.seating.index,
           rolesKey: template.roles.map((e) => Player.roleToIndex(e)).toList(),
           playersKey: Map.fromEntries(List.generate(template.roles.length, (index) => MapEntry(index.toString(), null))),
+          currentActionerIndexKey: 0,
         }));
 
     currentRoomNumber = roomNum;
@@ -87,17 +93,20 @@ class FirestoreProvider {
       return -1;
     }
 
+    int roleIndex = docSnap.data[rolesKey][seatNumber];
+    Role role = Player.indexToRole(roleIndex);
+
     if (currentSeatNumber != null) {
       return docRef.setData({
         playersKey: {
-          seatNumber.toString(): Player(uid: playerUid, seatNumber: seatNumber).toMap(),
+          seatNumber.toString(): Player(uid: playerUid, seatNumber: seatNumber, role: role).toMap(),
           currentSeatNumber.toString(): null,
         },
       }, merge: true).then((value) => 0);
     } else {
       return docRef.setData({
         playersKey: {
-          seatNumber.toString(): Player(uid: playerUid, seatNumber: seatNumber).toMap(),
+          seatNumber.toString(): Player(uid: playerUid, seatNumber: seatNumber, role: role).toMap(),
         },
       }, merge: true).then((value) => 0);
     }
@@ -110,39 +119,72 @@ class FirestoreProvider {
 
   static void handleDate(DocumentSnapshot docSnap, Sink sink) {
     var roomNumber = docSnap.documentID;
-
     var roomStatus = RoomStatus.values.elementAt(docSnap.data[roomStatusKey] ?? 0);
-
     var hostUid = docSnap.data[hostUidKey];
-
     var roles = (docSnap.data[rolesKey]).map((e) => Player.indexToRole(e)).toList();
-
     var players = (docSnap.data[playersKey] as Map).map((k, e) => MapEntry(int.parse(k), e == null ? null : Player.fromMap(e)));
-
     var template = WolfQueenTemplate.from(roles: roles);
+    var currentActionerIndex = docSnap.data[currentActionerIndexKey] ?? 0;
+
+    var hasPoison = docSnap.data[hasPosionKey] ?? true;
+    var hasAntidote = docSnap.data[hasAntidoteKey] ?? true;
 
     ///Todo: Currently for experiment, support only one template. Add support for other template.
-    Room room = Room.from(hostUid: hostUid, roomNumber: roomNumber, template: template, roomStatus: roomStatus);
+    Room room = Room.from(
+        hostUid: hostUid,
+        roomNumber: roomNumber,
+        template: template,
+        roomStatus: roomStatus,
+        currentActionerIndex: currentActionerIndex,
+        hasPoison: hasPoison,
+        hasAntidote: hasAntidote);
+    print("asd9");
+
+    print(players);
 
     room.players.clear();
     room.players.addAll(players);
 
+    print(room.players);
+
+    print("asd0");
+
+    print("$room");
+
+    print("asd00");
+
     sink.add(room);
+  }
+
+  void prepare() {
+    DocumentReference docRef = Firestore.instance.collection(rooms).document(currentRoomNumber);
+
+    docRef.setData({roomStatusKey: RoomStatus.seated.index}, merge: true);
   }
 
   void startGame() {
     DocumentReference docRef = Firestore.instance.collection(rooms).document(currentRoomNumber);
 
-    docRef.setData({roomStatusKey: RoomStatus.ongoing.index}, merge: true);
+    docRef.setData({roomStatusKey: RoomStatus.ongoing.index, currentActionerIndexKey: 0}, merge: true);
   }
 
-  void performAction(Role role, int targetSeat) {
+  void performAction(Role role, int targetSeat, int currentActionerIndex, {bool usePoison = false}) {
     DocumentReference docRef = Firestore.instance.collection(rooms).document(currentRoomNumber);
 
-    docRef.setData({
-      actionsKey: {
-        Player.roleToIndex(role).toString(): targetSeat,
-      }
-    }, merge: true);
+    if (role is Witch) {
+      docRef.setData({
+        actionsKey: {
+          Player.roleToIndex(role).toString(): usePoison ? -1 * targetSeat : targetSeat,
+        },
+        currentActionerIndexKey: currentActionerIndex
+      }, merge: true);
+    } else {
+      docRef.setData({
+        actionsKey: {
+          Player.roleToIndex(role).toString(): targetSeat,
+        },
+        currentActionerIndexKey: currentActionerIndex
+      }, merge: true);
+    }
   }
 }

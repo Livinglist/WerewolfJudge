@@ -51,7 +51,7 @@ class _MainPageState extends State<MainPage> {
                       borderRadius: BorderRadius.all(Radius.circular(16)),
                       child: InkWell(
                         onTap: () {
-                          if (Platform.isIOS) {
+                          if (Platform.isIOS || true) {
                             showCupertinoModalPopup(
                                 context: context,
                                 builder: (BuildContext context) => CupertinoActionSheet(
@@ -110,7 +110,7 @@ class _MainPageState extends State<MainPage> {
                     borderRadius: BorderRadius.all(Radius.circular(16)),
                     child: InkWell(
                       onTap: () {
-                        if (Platform.isIOS) {
+                        if (Platform.isIOS || true) {
                           showCupertinoModalPopup<SignInMethod>(
                               context: context,
                               builder: (BuildContext context) => CupertinoActionSheet(
@@ -191,6 +191,12 @@ class _MainPageState extends State<MainPage> {
                     title: '返回上局',
                     onTap: () {
                       //Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage()));
+                      var lastRoomNumber = FirestoreProvider.instance.currentRoomNumber;
+                      FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
+                        if (isValid) {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: lastRoomNumber)));
+                        }
+                      });
                     }),
                 MainPageTile(
                     title: '历史记录',
@@ -389,7 +395,7 @@ class _MainPageState extends State<MainPage> {
               children: <Widget>[
                 Padding(
                   padding: EdgeInsets.all(12),
-                  child: Material(color: Colors.transparent,child: Text('输入房间号码')),
+                  child: Material(color: Colors.transparent, child: Text('输入房间号码')),
                 ),
                 SizedBox(height: 24),
                 Padding(

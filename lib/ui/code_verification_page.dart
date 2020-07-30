@@ -31,7 +31,7 @@ class _CodeVerificationPageState extends State<CodeVerificationPage> {
   @override
   void dispose() {
     errorController.close();
-    textEditingController.dispose();
+    //textEditingController.dispose();
     super.dispose();
   }
 

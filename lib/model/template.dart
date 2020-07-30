@@ -48,7 +48,54 @@ class WolfQueenTemplate extends Template {
   }
 
   WolfQueenTemplate.from({List<dynamic> roles})
-      : super(name: '预女猎守狼美人12人局', numberOfPlayers: roles.length, roles: roles.map((e) => e as Role).toList()) {
+      : super(name: '预女猎守狼美人12人局', numberOfPlayers: roles.length, roles: roles.map((e) => e as Role).toList(), actionOrder: [
+          Guard(),
+          Wolf(),
+          WolfQueen(),
+          Witch(),
+          Seer(),
+          Hunter(),
+        ]) {
+    print('constructing ${this.roles}');
+  }
+}
+
+//Order: guard -> wolf -> wolf queen -> witch -> seer -> hunter
+class WolfQueenSlackerTemplate extends Template {
+  WolfQueenSlackerTemplate.newGame()
+      : super(name: '预女猎守狼美人12人局', numberOfPlayers: 12, roles: [
+    Villager(),
+    Villager(),
+    Villager(),
+    Villager(),
+    Wolf(),
+    Wolf(),
+    Wolf(),
+    WolfQueen(),
+    Seer(),
+    Hunter(),
+    Witch(),
+    Guard(),
+  ], actionOrder: [
+    Guard(),
+    Wolf(),
+    WolfQueen(),
+    Witch(),
+    Seer(),
+    Hunter(),
+  ]) {
+    roles.shuffle(Random(DateTime.now().millisecondsSinceEpoch));
+  }
+
+  WolfQueenSlackerTemplate.from({List<dynamic> roles})
+      : super(name: '预女猎守混狼美人13人局', numberOfPlayers: roles.length, roles: roles.map((e) => e as Role).toList(), actionOrder: [
+    Guard(),
+    Wolf(),
+    WolfQueen(),
+    Witch(),
+    Seer(),
+    Hunter(),
+  ]) {
     print('constructing ${this.roles}');
   }
 }
