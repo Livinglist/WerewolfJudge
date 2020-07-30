@@ -17,7 +17,7 @@ class Room {
   Map<int, Player> players = {};
 
   ///Role to target
-  Map<Role, int> actions;
+  Map<Type, int> actions;
 
   List<Map<Role, int>> rounds;
 
@@ -31,7 +31,8 @@ class Room {
 
   Room.create({this.hostUid, this.roomNumber, this.template}) : roomStatus = RoomStatus.seating;
 
-  Room.from({this.hostUid, this.roomNumber, this.template, this.roomStatus, this.currentActionerIndex, this.hasAntidote, this.hasPoison});
+  Room.from(
+      {this.actions, this.hostUid, this.roomNumber, this.template, this.roomStatus, this.currentActionerIndex, this.hasAntidote, this.hasPoison});
 
   void startGame() {
     FirestoreProvider.instance.startGame();

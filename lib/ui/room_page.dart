@@ -339,8 +339,10 @@ class _RoomPageState extends State<RoomPage> {
       onPressed: () => Navigator.pop(context),
     );
     Widget continueButton = FlatButton(
-      child: Text("救助"),
-      color: killedIndex == mySeatNumber ? Colors.grey : Colors.orange,
+      child: Text(
+        "救助",
+        style: TextStyle(color: killedIndex == mySeatNumber ? Colors.grey : Colors.orange),
+      ),
       onPressed: () {
         if (killedIndex == mySeatNumber) {
           ///Todo: no saving self

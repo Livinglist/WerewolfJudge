@@ -118,6 +118,9 @@ class FirestoreProvider {
   }
 
   static void handleDate(DocumentSnapshot docSnap, Sink sink) {
+    var actions = (docSnap.data[actionsKey] as Map<String, dynamic>)
+        .map((key, value) => MapEntry(Player.indexToRole(int.parse(key)).runtimeType, value as int));
+
     var roomNumber = docSnap.documentID;
     var roomStatus = RoomStatus.values.elementAt(docSnap.data[roomStatusKey] ?? 0);
     var hostUid = docSnap.data[hostUidKey];
@@ -131,6 +134,7 @@ class FirestoreProvider {
 
     ///Todo: Currently for experiment, support only one template. Add support for other template.
     Room room = Room.from(
+        actions: actions,
         hostUid: hostUid,
         roomNumber: roomNumber,
         template: template,
