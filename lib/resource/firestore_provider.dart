@@ -50,6 +50,7 @@ class FirestoreProvider {
     } while (docSnap.exists && DateTime.fromMillisecondsSinceEpoch(docSnap.data[timestamp]).toLocal().difference(DateTime.now()).inHours <= 2);
 
     docRef.delete().whenComplete(() => docRef.setData({
+          actionsKey: {},
           hasPosionKey: true,
           hasAntidoteKey: true,
           timestamp: DateTime.now().toUtc().millisecondsSinceEpoch,
@@ -112,15 +113,33 @@ class FirestoreProvider {
     }
   }
 
+  Future<int> leaveSeat(String roomNumber, int seatNumber) async {
+    DocumentReference docRef = Firestore.instance.collection(rooms).document(roomNumber);
+    DocumentSnapshot docSnap = await docRef.get();
+
+    if (docSnap.data[playersKey][seatNumber.toString()] == null) {
+      return -1;
+    }
+
+    print("the seat number is $seatNumber");
+
+    return docRef.setData({
+      playersKey: {
+        seatNumber.toString(): null,
+      },
+    }, merge: true).then((value) => 0);
+  }
+
   static int generateRoomNumber() {
     int roomNumber = (Random(DateTime.now().millisecondsSinceEpoch).nextDouble() * 10000).toInt();
     return roomNumber;
   }
 
   static void handleDate(DocumentSnapshot docSnap, Sink sink) {
+    print("asd1");
     var actions = (docSnap.data[actionsKey] as Map<String, dynamic>)
         .map((key, value) => MapEntry(Player.indexToRole(int.parse(key)).runtimeType, value as int));
-
+    print("asd2");
     var roomNumber = docSnap.documentID;
     var roomStatus = RoomStatus.values.elementAt(docSnap.data[roomStatusKey] ?? 0);
     var hostUid = docSnap.data[hostUidKey];

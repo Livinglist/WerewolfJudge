@@ -301,7 +301,10 @@ class _RoomPageState extends State<RoomPage> {
 
   void onSeatTapped(int index) {
     if (room.roomStatus == RoomStatus.seating) {
-      showEnterSeatDialog(index);
+      if (imHost == false && index == mySeatNumber)
+        showLeaveSeatDialog(index);
+      else
+        showEnterSeatDialog(index);
     } else if (imActioner) {
       showActionConfirmDialog(index);
     }
@@ -446,6 +449,40 @@ class _RoomPageState extends State<RoomPage> {
     );
   }
 
+  void showLeaveSeatDialog(int index) {
+    // set up the buttons
+    Widget cancelButton = FlatButton(
+      child: Text("取消"),
+      onPressed: () => Navigator.pop(context),
+    );
+    Widget continueButton = FlatButton(
+      child: Text("确定"),
+      onPressed: () {
+        mySeatNumber = null;
+
+        FirestoreProvider.instance.leaveSeat(widget.roomNumber, index).then((_) => Navigator.pop(context));
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("离席"),
+      content: Text("确定离开${index + 1}号?"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
   void showConflictDialog(int index) {
     Widget continueButton = FlatButton(
       child: Text("确定"),
@@ -470,6 +507,7 @@ class _RoomPageState extends State<RoomPage> {
     );
   }
 
+  ///Display the role card.
   void showRoleCardDialog() {
     Widget continueButton = FlatButton(
       child: Text("确定"),
@@ -496,6 +534,7 @@ class _RoomPageState extends State<RoomPage> {
     );
   }
 
+  ///Allowing everybody to see their role.
   void showFlipRoleCardDialog() {
     Widget continueButton = FlatButton(
       child: Text("确定"),
@@ -524,6 +563,7 @@ class _RoomPageState extends State<RoomPage> {
     );
   }
 
+  ///Start the game.
   void showStartGameDialog() {
     Widget continueButton = FlatButton(
       child: Text("确定"),
@@ -553,6 +593,7 @@ class _RoomPageState extends State<RoomPage> {
     );
   }
 
+  ///If not all seated, then game cannot be started.
   void showNotAllSeatedDialog() {
     Widget continueButton = FlatButton(
       child: Text("好"),

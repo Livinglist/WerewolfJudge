@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:werewolfjudge/util/list_extension.dart';
 
 import 'hunter.dart';
 import 'role.dart';
@@ -12,7 +13,7 @@ import 'slacker.dart';
 
 export 'player.dart';
 
-List actionOrder = <Role>[
+List<Role> actionOrder = <Role>[
   Slacker(),
   Guard(),
   Wolf(),
@@ -111,4 +112,9 @@ class WolfQueenSlackerTemplate extends Template {
   }
 }
 
-class WolfKingTemplate extends Template {}
+class CustomTemplate extends Template {
+  CustomTemplate.newGame({List<Role> roles})
+      : super(name: '', numberOfPlayers: roles.length, roles: roles, actionOrder: actionOrder.takeWhile((value) => roles.hasType(value)).toList()) {
+    roles.shuffle(Random(DateTime.now().millisecondsSinceEpoch));
+  }
+}
