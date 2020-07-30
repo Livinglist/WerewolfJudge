@@ -8,8 +8,19 @@ import 'wolfQueen.dart';
 import 'seer.dart';
 import 'witch.dart';
 import 'guard.dart';
+import 'slacker.dart';
 
 export 'player.dart';
+
+List actionOrder = <Role>[
+  Slacker(),
+  Guard(),
+  Wolf(),
+  WolfQueen(),
+  Witch(),
+  Seer(),
+  Hunter(),
+];
 
 abstract class Template {
   final String name;
@@ -64,38 +75,38 @@ class WolfQueenTemplate extends Template {
 class WolfQueenSlackerTemplate extends Template {
   WolfQueenSlackerTemplate.newGame()
       : super(name: '预女猎守狼美人12人局', numberOfPlayers: 12, roles: [
-    Villager(),
-    Villager(),
-    Villager(),
-    Villager(),
-    Wolf(),
-    Wolf(),
-    Wolf(),
-    WolfQueen(),
-    Seer(),
-    Hunter(),
-    Witch(),
-    Guard(),
-  ], actionOrder: [
-    Guard(),
-    Wolf(),
-    WolfQueen(),
-    Witch(),
-    Seer(),
-    Hunter(),
-  ]) {
+          Villager(),
+          Villager(),
+          Villager(),
+          Villager(),
+          Wolf(),
+          Wolf(),
+          Wolf(),
+          WolfQueen(),
+          Seer(),
+          Hunter(),
+          Witch(),
+          Guard(),
+        ], actionOrder: [
+          Guard(),
+          Wolf(),
+          WolfQueen(),
+          Witch(),
+          Seer(),
+          Hunter(),
+        ]) {
     roles.shuffle(Random(DateTime.now().millisecondsSinceEpoch));
   }
 
   WolfQueenSlackerTemplate.from({List<dynamic> roles})
       : super(name: '预女猎守混狼美人13人局', numberOfPlayers: roles.length, roles: roles.map((e) => e as Role).toList(), actionOrder: [
-    Guard(),
-    Wolf(),
-    WolfQueen(),
-    Witch(),
-    Seer(),
-    Hunter(),
-  ]) {
+          Guard(),
+          Wolf(),
+          WolfQueen(),
+          Witch(),
+          Seer(),
+          Hunter(),
+        ]) {
     print('constructing ${this.roles}');
   }
 }
