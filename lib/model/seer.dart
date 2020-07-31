@@ -1,5 +1,3 @@
-import 'player.dart';
-
 import 'god.dart';
 
 class Seer extends God {

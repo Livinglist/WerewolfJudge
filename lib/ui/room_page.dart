@@ -1,3 +1,4 @@
+import 'package:audioplayers/audio_cache.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:werewolfjudge/model/actionable_mixin.dart';
@@ -16,12 +17,14 @@ class RoomPage extends StatefulWidget {
 }
 
 class _RoomPageState extends State<RoomPage> {
+  final player = AudioCache();
   int mySeatNumber;
   RoomStatus lastRoomStatus;
   Role myRole;
-  bool imHost = false, imActioner = false, showWolves = false, hasShown = false;
+  bool imHost = false, imActioner = false, showWolves = false, hasShown = false, firstNightEnded = false;
   Room room;
   double gridHeight;
+  String roomInfo;
 
   @override
   void initState() {
@@ -57,6 +60,21 @@ class _RoomPageState extends State<RoomPage> {
                     }
                   }
 
+                  if (roomInfo == null) {
+                    roomInfo = '';
+                    var villagerCount = room.template.roles.whereType<Villager>().length;
+                    var wolfCount = room.template.roles.where((e) => e.runtimeType == Wolf).length;
+
+                    roomInfo += '村民x$villagerCount, ';
+                    roomInfo += '普狼x$wolfCount, ';
+                    for (var i in room.template.roles) {
+                      if (i.runtimeType != Wolf && i is Villager == false) roomInfo += i.roleName + ', ';
+                    }
+
+                    //remove the last comma.
+                    roomInfo = roomInfo.substring(0, roomInfo.length - 2);
+                  }
+
                   if (myUid == room.hostUid) {
                     imHost = true;
                     //only play audio on host phone?
@@ -71,7 +89,10 @@ class _RoomPageState extends State<RoomPage> {
                   }
 
                   if (room.roomStatus == RoomStatus.ongoing) {
-                    if (myRole.runtimeType == room.currentActionRole.runtimeType) {
+                    if (room.currentActionRole == null) {
+                      firstNightEnded = true;
+                      imActioner = false;
+                    } else if (myRole.runtimeType == room.currentActionRole.runtimeType) {
                       imActioner = true;
 
                       if (hasShown == false) {
@@ -80,6 +101,9 @@ class _RoomPageState extends State<RoomPage> {
                         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
                           if (myRole is Witch) {
                             showWitchActionDialog(room.killedIndex);
+                          }
+                          if (myRole is Hunter) {
+                            showHunterActionMessage(myRole as ActionableMixin);
                           } else {
                             showActionMessage(myRole as ActionableMixin);
                           }
@@ -87,6 +111,9 @@ class _RoomPageState extends State<RoomPage> {
                       }
 
                       if (myRole is Wolf) showWolves = true;
+                    } else if (room.currentActionRole is Wolf && (myRole is WolfKing || myRole is WolfQueen)) {
+                      imActioner = false;
+                      showWolves = true;
                     } else {
                       imActioner = false;
                       showWolves = false;
@@ -118,9 +145,9 @@ class _RoomPageState extends State<RoomPage> {
                     children: <Widget>[
                       Padding(
                           padding: EdgeInsets.all(12),
-                          child: Row(
+                          child: Wrap(
                             children: <Widget>[
-                              Text("房间信息：\n"),
+                              Text("房间信息：$roomInfo"),
                             ],
                           )),
                       Container(
@@ -264,7 +291,8 @@ class _RoomPageState extends State<RoomPage> {
                                 },
                               ),
                             ),
-                          if (imActioner)
+                          if (imHost) SizedBox(width: 12),
+                          if (imActioner && myRole is Hunter == false)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
                               child: RaisedButton(
@@ -274,16 +302,28 @@ class _RoomPageState extends State<RoomPage> {
                                 },
                               ),
                             ),
+                          if (imActioner && myRole is Hunter == false) SizedBox(width: 12),
+                          if (imHost && firstNightEnded)
+                            Padding(
+                              padding: EdgeInsets.only(bottom: 12),
+                              child: RaisedButton(
+                                child: Text('查看昨晚信息'),
+                                onPressed: () {
+                                  showLastNightConfirmDialog();
+                                },
+                              ),
+                            ),
+                          if (imHost && firstNightEnded) SizedBox(width: 12),
                           if (room.roomStatus != RoomStatus.seating)
                             Padding(
-                              padding: EdgeInsets.only(bottom: 12, left: 12),
+                              padding: EdgeInsets.only(bottom: 12),
                               child: RaisedButton(
                                 child: Text('查看身份'),
                                 onPressed: () {
                                   showRoleCardDialog();
                                 },
                               ),
-                            )
+                            ),
                         ],
                       )
                     ],
@@ -329,6 +369,7 @@ class _RoomPageState extends State<RoomPage> {
     // show the dialog
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return alert;
       },
@@ -358,7 +399,7 @@ class _RoomPageState extends State<RoomPage> {
 
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
-      title: Text("昨夜倒台玩家为$killedIndex号。"),
+      title: Text("昨夜倒台玩家为${killedIndex + 1}号。"),
       content: Text("是否救助?"),
       actions: [
         cancelButton,
@@ -455,6 +496,7 @@ class _RoomPageState extends State<RoomPage> {
       child: Text("取消"),
       onPressed: () => Navigator.pop(context),
     );
+
     Widget continueButton = FlatButton(
       child: Text("确定"),
       onPressed: () {
@@ -493,6 +535,60 @@ class _RoomPageState extends State<RoomPage> {
     AlertDialog alert = AlertDialog(
       title: Text("${index + 1}号座已被占用"),
       content: Text("请选择其他位置。"),
+      actions: [
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  ///Confirm to see the last night information.
+  void showLastNightConfirmDialog() {
+    Widget continueButton = FlatButton(
+      child: Text("确定"),
+      onPressed: () {
+        Navigator.pop(context);
+        showLastNightInfoDialog();
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("确定查看昨夜信息？"),
+      actions: [
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  ///Confirm to see the last night information.
+  void showLastNightInfoDialog() {
+    Widget continueButton = FlatButton(
+      child: Text("确定"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("昨夜信息"),
+      content: Text(room.lastNightInfo),
       actions: [
         continueButton,
       ],
@@ -571,6 +667,8 @@ class _RoomPageState extends State<RoomPage> {
         Navigator.pop(context);
 
         room.startGame();
+
+        player.play("night.m4a");
         //FirestoreProvider.instance.startGame();
       },
     );
@@ -636,6 +734,34 @@ class _RoomPageState extends State<RoomPage> {
     // show the dialog
     showDialog(
       context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  void showHunterActionMessage(ActionableMixin actionableMixin) {
+    Widget continueButton = FlatButton(
+      child: Text("好"),
+      onPressed: () {
+        Navigator.pop(context);
+        room.proceed(null);
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text(actionableMixin.actionMessage),
+      content: Text(room.hunterStatus ? "可以发动" : "不可发动"),
+      actions: [
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return alert;
       },

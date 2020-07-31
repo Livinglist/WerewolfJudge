@@ -68,6 +68,30 @@ class Player {
         return 5;
       case Guard:
         return 6;
+      case Slacker:
+        return 7;
+      case WolfKing:
+        return 8;
+      case Nightmare:
+        return 9;
+      case Gargoyle:
+        return 10;
+      case GraveyardKeeper:
+        return 11;
+      case Idiot:
+        return 12;
+      case BlackTrader:
+        return 13;
+      case HiddenWolf:
+        return 14;
+      case Knight:
+        return 15;
+      case Celebrity:
+        return 16;
+      case Cupid:
+        return 17;
+      case Moderator:
+        return 18;
       default:
         throw Exception("No corresponding index found for ${role.runtimeType}");
     }
@@ -91,6 +115,30 @@ class Player {
         return Hunter();
       case 6:
         return Guard();
+      case 7:
+        return Slacker();
+      case 8:
+        return WolfKing();
+      case 9:
+        return Nightmare();
+      case 10:
+        return Gargoyle();
+      case 11:
+        return GraveyardKeeper();
+      case 12:
+        return Idiot();
+      case 13:
+        return BlackTrader();
+      case 14:
+        return HiddenWolf();
+      case 15:
+        return Knight();
+      case 16:
+        return Celebrity();
+      case 17:
+        return Cupid();
+      case 18:
+        return Moderator();
       default:
         throw Exception("No corresponding role found for $index");
     }

@@ -10,17 +10,23 @@ import 'seer.dart';
 import 'witch.dart';
 import 'guard.dart';
 import 'slacker.dart';
+import 'nightmare.dart';
+import 'gargoyle.dart';
+import 'graveyard_keeper.dart';
 
 export 'player.dart';
 
-List<Role> actionOrder = <Role>[
+List<Role> allActionOrder = <Role>[
   Slacker(),
+  Gargoyle(),
+  Nightmare(),
   Guard(),
   Wolf(),
   WolfQueen(),
   Witch(),
   Seer(),
   Hunter(),
+  Moderator(),
 ];
 
 abstract class Template {
@@ -28,6 +34,8 @@ abstract class Template {
   final int numberOfPlayers;
   final List<Role> roles;
   final List<Role> actionOrder;
+
+  Set<Type> get rolesType => roles.map((e) => e.runtimeType).toSet();
 
   Template({this.name, this.numberOfPlayers, this.roles, this.actionOrder});
 }
@@ -114,7 +122,14 @@ class WolfQueenSlackerTemplate extends Template {
 
 class CustomTemplate extends Template {
   CustomTemplate.newGame({List<Role> roles})
-      : super(name: '', numberOfPlayers: roles.length, roles: roles, actionOrder: actionOrder.takeWhile((value) => roles.hasType(value)).toList()) {
+      : super(name: '', numberOfPlayers: roles.length, roles: roles, actionOrder: allActionOrder.where((value) => roles.hasType(value)).toList()) {
     roles.shuffle(Random(DateTime.now().millisecondsSinceEpoch));
   }
+
+  CustomTemplate.from({List<dynamic> roles})
+      : super(
+            name: '',
+            numberOfPlayers: roles.length,
+            roles: roles.map((e) => e as Role).toList(),
+            actionOrder: allActionOrder.where((value) => roles.hasType(value)).toList());
 }

@@ -19,6 +19,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  audioplayers: 0.15.1
   firebase_core: ^0.4.0+9
   apple_sign_in: 0.1.0
   fluwx: 2.2.0
@@ -48,6 +49,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/night.m4a
 
   # To add assets to your application, add an assets section, like this:
   # assets:

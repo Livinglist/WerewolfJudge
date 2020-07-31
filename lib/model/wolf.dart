@@ -3,6 +3,9 @@ import 'role.dart';
 
 export 'wolfQueen.dart';
 export 'wolfKing.dart';
+export 'nightmare.dart';
+export 'gargoyle.dart';
+export 'hidden_wolf.dart';
 
 class Wolf extends Role with ActionableMixin {
   final String roleName;

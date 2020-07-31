@@ -64,6 +64,8 @@ class FirestoreProvider {
 
     currentRoomNumber = roomNum;
 
+    print("The room number in newRoom() is $roomNum");
+
     return roomNum;
   }
 
@@ -145,7 +147,7 @@ class FirestoreProvider {
     var hostUid = docSnap.data[hostUidKey];
     var roles = (docSnap.data[rolesKey]).map((e) => Player.indexToRole(e)).toList();
     var players = (docSnap.data[playersKey] as Map).map((k, e) => MapEntry(int.parse(k), e == null ? null : Player.fromMap(e)));
-    var template = WolfQueenTemplate.from(roles: roles);
+    var template = CustomTemplate.from(roles: roles);
     var currentActionerIndex = docSnap.data[currentActionerIndexKey] ?? 0;
 
     var hasPoison = docSnap.data[hasPosionKey] ?? true;
@@ -197,10 +199,12 @@ class FirestoreProvider {
     if (role is Witch) {
       docRef.setData({
         actionsKey: {
-          Player.roleToIndex(role).toString(): usePoison ? -1 * targetSeat : targetSeat,
+          Player.roleToIndex(role).toString(): usePoison ? -1 * (targetSeat + 1) : targetSeat,
         },
         currentActionerIndexKey: currentActionerIndex
       }, merge: true);
+    } else if (role is Hunter) {
+      docRef.setData({currentActionerIndexKey: currentActionerIndex}, merge: true);
     } else {
       docRef.setData({
         actionsKey: {
