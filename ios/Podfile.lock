@@ -396,6 +396,8 @@ PODS:
     - Flutter
   - shared_preferences_web (0.0.1):
     - Flutter
+  - wakelock (0.0.1):
+    - Flutter
   - WechatOpenSDK (1.8.7.1)
 
 DEPENDENCIES:
@@ -418,6 +420,7 @@ DEPENDENCIES:
   - shared_preferences_linux (from `.symlinks/plugins/shared_preferences_linux/ios`)
   - shared_preferences_macos (from `.symlinks/plugins/shared_preferences_macos/ios`)
   - shared_preferences_web (from `.symlinks/plugins/shared_preferences_web/ios`)
+  - wakelock (from `.symlinks/plugins/wakelock/ios`)
 
 SPEC REPOS:
   trunk:
@@ -486,6 +489,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_macos/ios"
   shared_preferences_web:
     :path: ".symlinks/plugins/shared_preferences_web/ios"
+  wakelock:
+    :path: ".symlinks/plugins/wakelock/ios"
 
 SPEC CHECKSUMS:
   abseil: 6c8eb7892aefa08d929b39f9bb108e5367e3228f
@@ -531,6 +536,7 @@ SPEC CHECKSUMS:
   shared_preferences_linux: afefbfe8d921e207f01ede8b60373d9e3b566b78
   shared_preferences_macos: f3f29b71ccbb56bf40c9dd6396c9acf15e214087
   shared_preferences_web: 141cce0c3ed1a1c5bf2a0e44f52d31eeb66e5ea9
+  wakelock: 0d4a70faf8950410735e3f61fb15d517c8a6efc4
   WechatOpenSDK: 6a4d1436c15b3b5fe2a0bd383f3046010186da44
 
 PODFILE CHECKSUM: 1b66dae606f75376c5f2135a8290850eeb09ae83

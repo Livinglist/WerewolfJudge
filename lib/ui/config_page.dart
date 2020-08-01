@@ -17,7 +17,7 @@ const String wolf1 = '普狼1';
 const String wolf2 = '普狼2';
 const String wolf3 = '普狼3';
 const String wolf4 = '普狼4';
-const String wolfQueen = '普美人';
+const String wolfQueen = '狼美人';
 const String wolfKing = '白狼王';
 const String seer = '预言家';
 const String witch = '女巫';
@@ -44,6 +44,11 @@ const String magician = '魔术师';
 const String wolfSeeder = '种狼';
 const String bride = '鬼魂新娘';
 const String thief = '盗贼';
+const String witcher = '猎魔人';
+const String bloodMoon = '血月使徒';
+const String pervert = '老流氓';
+const String wolfRobot = '机械狼';
+const String psychic = '通灵师';
 
 class _ConfigPageState extends State<ConfigPage> {
   final scrollController = ScrollController();
@@ -80,6 +85,11 @@ class _ConfigPageState extends State<ConfigPage> {
     wolfSeeder: false,
     bride: false,
     thief: false,
+    witcher: false,
+    bloodMoon: false,
+    pervert: false,
+    wolfRobot: false,
+    psychic: false,
   };
   bool showShadow = false;
 
@@ -108,7 +118,7 @@ class _ConfigPageState extends State<ConfigPage> {
         backgroundColor: Colors.orange,
         appBar: AppBar(
           title: Text('创建房间 ${selectedMap.values.toList().where((e) => e).length}人'),
-          elevation: showShadow?8:0,
+          elevation: showShadow ? 8 : 0,
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.check),
@@ -191,6 +201,27 @@ class _ConfigPageState extends State<ConfigPage> {
                       break;
                     case wolfSeeder:
                       roles.add(WolfSeeder());
+                      break;
+                    case bride:
+                      roles.add(Bride());
+                      break;
+                    case thief:
+                      roles.add(Thief());
+                      break;
+                    case witcher:
+                      roles.add(Witcher());
+                      break;
+                    case bloodMoon:
+                      roles.add(BloodMoon());
+                      break;
+                    case pervert:
+                      roles.add(Pervert());
+                      break;
+                    case wolfRobot:
+                      roles.add(WolfRobot());
+                      break;
+                    case psychic:
+                      roles.add(Psychic());
                       break;
                     default:
                       throw Exception("Unmatched role: ${i.key}");
@@ -285,6 +316,8 @@ class _ConfigPageState extends State<ConfigPage> {
                   buildFilterChip(nightmare),
                   buildFilterChip(hiddenWolf),
                   buildFilterChip(wolfSeeder),
+                  buildFilterChip(bloodMoon),
+                  buildFilterChip(wolfRobot),
                 ],
               ),
             ),
@@ -345,6 +378,7 @@ class _ConfigPageState extends State<ConfigPage> {
                       });
                     },
                   ),
+                  buildFilterChip(pervert),
                 ],
               ),
             ),
@@ -368,6 +402,8 @@ class _ConfigPageState extends State<ConfigPage> {
                   buildFilterChip(moderator),
                   buildFilterChip(tree),
                   buildFilterChip(magician),
+                  buildFilterChip(witcher),
+                  buildFilterChip(psychic),
                 ],
               ),
             ),
@@ -384,6 +420,15 @@ class _ConfigPageState extends State<ConfigPage> {
                 ],
               ),
             ),
+            Padding(
+              padding: EdgeInsets.only(left: 12),
+              child: Text(
+                "备注",
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+            ),
+            Divider(),
+            Padding(padding: EdgeInsets.only(left: 12), child: Text("该应用可以充当第一夜法官的板子有：狼美守卫，石像鬼守墓人，血月猎魔，魔术师狼王, 机械狼通灵师。")),
           ],
         ));
   }

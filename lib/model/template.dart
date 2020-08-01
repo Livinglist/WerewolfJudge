@@ -1,22 +1,14 @@
 import 'dart:math';
+
 import 'package:werewolfjudge/util/list_extension.dart';
 
-import 'hunter.dart';
 import 'role.dart';
-import 'villager.dart';
-import 'wolf.dart';
-import 'wolf_queen.dart';
-import 'seer.dart';
-import 'witch.dart';
-import 'guard.dart';
-import 'slacker.dart';
-import 'nightmare.dart';
-import 'gargoyle.dart';
 
 export 'player.dart';
 
 List<Role> allActionOrder = <Role>[
   Slacker(),
+  WolfRobot(),
   Magician(),
   Celebrity(),
   Gargoyle(),
@@ -26,7 +18,9 @@ List<Role> allActionOrder = <Role>[
   WolfQueen(),
   Witch(),
   Seer(),
+  Psychic(),
   Hunter(),
+  WolfKing(),
   Moderator(),
 ];
 

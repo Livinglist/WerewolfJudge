@@ -32,77 +32,121 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('狼杀小法官'),
-      ),
-      body: Column(
-        children: <Widget>[
-          StreamBuilder(
-            stream: FirebaseAuth.instance.onAuthStateChanged,
-            builder: (_, AsyncSnapshot<FirebaseUser> snapshot) {
-              if (snapshot.hasData) {
-                var user = snapshot.data;
-                userName = userName ?? user.displayName;
+          title: RichText(
+              text: TextSpan(style: TextStyle(color: Colors.black87, fontSize: 18),children: [
+        TextSpan(text: '狼杀'),
+        TextSpan(text: 'wolf-pack-battalion', style: TextStyle(fontFamily: 'Brands', fontSize: 36)),
+        TextSpan(text: '法官')
+      ]))),
+      body: StreamBuilder(
+        stream: FirebaseAuth.instance.onAuthStateChanged,
+        builder: (_, AsyncSnapshot<FirebaseUser> snapshot) {
+          if (snapshot.hasData) {
+            var user = snapshot.data;
+            userName = user.displayName;
 
-                return Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Material(
-                      color: Colors.orangeAccent,
-                      elevation: 8,
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                      child: InkWell(
-                        onTap: () {
-                          if (Platform.isIOS || true) {
-                            showCupertinoModalPopup(
-                                context: context,
-                                builder: (BuildContext context) => CupertinoActionSheet(
-                                      cancelButton: CupertinoActionSheetAction(
-                                        isDefaultAction: true,
-                                        child: Text('Cancel'),
+            return Column(children: <Widget>[
+              Padding(
+                padding: EdgeInsets.all(12),
+                child: Material(
+                    color: Colors.orangeAccent,
+                    elevation: 8,
+                    borderRadius: BorderRadius.all(Radius.circular(16)),
+                    child: InkWell(
+                      onTap: () {
+                        if (Platform.isIOS || true) {
+                          showCupertinoModalPopup(
+                              context: context,
+                              builder: (BuildContext context) => CupertinoActionSheet(
+                                    cancelButton: CupertinoActionSheetAction(
+                                      isDefaultAction: true,
+                                      child: Text('Cancel'),
+                                      onPressed: () {
+                                        Navigator.pop(context, null);
+                                      },
+                                    ),
+                                    actions: <Widget>[
+                                      CupertinoActionSheetAction(
+                                        child: Text('编辑名称', style: TextStyle(color: Colors.blue)),
                                         onPressed: () {
-                                          Navigator.pop(context, null);
+                                          Navigator.pop(context);
+                                          changeNameDialog(userName ?? '');
                                         },
                                       ),
-                                      actions: <Widget>[
-                                        CupertinoActionSheetAction(
-                                          child: Text('编辑名称', style: TextStyle(color: Colors.blue)),
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            changeNameDialog(userName ?? '');
-                                          },
-                                        ),
-                                        CupertinoActionSheetAction(
-                                          isDefaultAction: true,
-                                          child: Text('登出'),
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            FirebaseAuthProvider.instance.signOut();
-                                          },
-                                        ),
-                                      ],
-                                    )).then((value) => value ?? null);
-                          } else {}
-                        },
-                        borderRadius: BorderRadius.all(Radius.circular(16)),
-                        child: Container(
-                          width: double.infinity,
-                          child: Padding(
-                              padding: EdgeInsets.all(12),
-                              child: Row(
-                                children: <Widget>[
-                                  Icon(FontAwesomeIcons.signInAlt),
-                                  SizedBox(
-                                    width: 12,
-                                  ),
-                                  Text(userName ?? user.uid),
-                                ],
-                              )),
-                          decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
-                        ),
-                      )),
-                );
-              }
+                                      CupertinoActionSheetAction(
+                                        isDefaultAction: true,
+                                        child: Text('登出'),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          FirebaseAuthProvider.instance.signOut();
+                                        },
+                                      ),
+                                    ],
+                                  )).then((value) => value ?? null);
+                        } else {}
+                      },
+                      borderRadius: BorderRadius.all(Radius.circular(16)),
+                      child: Container(
+                        width: double.infinity,
+                        child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Row(
+                              children: <Widget>[
+                                Icon(FontAwesomeIcons.signInAlt),
+                                SizedBox(
+                                  width: 12,
+                                ),
+                                Text(userName ?? user.uid),
+                              ],
+                            )),
+                        decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
+                      ),
+                    )),
+              ),
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  physics: NeverScrollableScrollPhysics(),
+                  children: <Widget>[
+                    MainPageTile(
+                        title: '进入房间',
+                        onTap: () {
+                          ///Todo: Enter room number.
+                          ///Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage()));
+                          showEnterRoomDialog();
+                        }),
+                    MainPageTile(
+                        title: '创建房间',
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
+                        }),
+                    MainPageTile(
+                        title: '返回上局',
+                        onTap: () {
+                          //Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage()));
+                          var lastRoomNumber = FirestoreProvider.instance.currentRoomNumber;
+                          FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
+                            if (isValid) {
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: lastRoomNumber)));
+                            }
+                          });
+                        }),
+                    MainPageTile(
+                        title: '历史记录',
+                        onTap: () {
+                          //Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
+                        }),
+                  ],
+                ),
+              ),
+            ]);
+          }
 
-              return Padding(
+          return Column(
+            children: <Widget>[
+              Padding(
                 padding: EdgeInsets.all(12),
                 child: Material(
                     color: Colors.orangeAccent,
@@ -165,48 +209,24 @@ class _MainPageState extends State<MainPage> {
                         decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
                       ),
                     )),
-              );
-            },
-          ),
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              physics: NeverScrollableScrollPhysics(),
-              children: <Widget>[
-                MainPageTile(
-                    title: '进入房间',
-                    onTap: () {
-                      ///Todo: Enter room number.
-                      ///Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage()));
-                      showEnterRoomDialog();
-                    }),
-                MainPageTile(
-                    title: '创建房间',
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
-                    }),
-                MainPageTile(
-                    title: '返回上局',
-                    onTap: () {
-                      //Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage()));
-                      var lastRoomNumber = FirestoreProvider.instance.currentRoomNumber;
-                      FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
-                        if (isValid) {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: lastRoomNumber)));
-                        }
-                      });
-                    }),
-                MainPageTile(
-                    title: '历史记录',
-                    onTap: () {
-                      //Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
-                    }),
-              ],
-            ),
-          ),
-        ],
+              ),
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  physics: NeverScrollableScrollPhysics(),
+                  children: <Widget>[
+                    MainPageTile(title: '进入房间', onTap: () => showLoginRequestDialog()),
+                    MainPageTile(title: '创建房间', onTap: () => showLoginRequestDialog()),
+                    MainPageTile(title: '返回上局', onTap: () {}),
+                    MainPageTile(title: '历史记录', onTap: () {}),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -459,6 +479,29 @@ class _MainPageState extends State<MainPage> {
           position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim),
           child: child,
         );
+      },
+    );
+  }
+
+  void showLoginRequestDialog() {
+    Widget continueButton = FlatButton(
+      child: Text("确定"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+
+    AlertDialog alert = AlertDialog(
+      title: Text("请先登陆"),
+      actions: [
+        continueButton,
+      ],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
       },
     );
   }

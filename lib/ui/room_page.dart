@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:audioplayers/audio_cache.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:wakelock/wakelock.dart';
 import 'package:werewolfjudge/model/actionable_mixin.dart';
 import 'package:werewolfjudge/model/player.dart';
 import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
-
 import 'package:werewolfjudge/resource/firestore_provider.dart';
+import 'package:werewolfjudge/resource/judge_audio_provider.dart';
+import 'package:werewolfjudge/resource/role_image_provider.dart';
 
 class RoomPage extends StatefulWidget {
   final String roomNumber;
@@ -18,7 +22,7 @@ class RoomPage extends StatefulWidget {
 }
 
 class _RoomPageState extends State<RoomPage> {
-  final player = AudioCache();
+  final audioPlayer = AudioCache();
 
   ///Reserved for Magician.
   int anotherIndex;
@@ -32,7 +36,15 @@ class _RoomPageState extends State<RoomPage> {
 
   @override
   void initState() {
+    Wakelock.enable();
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    Wakelock.disable();
+    super.dispose();
   }
 
   @override
@@ -98,6 +110,9 @@ class _RoomPageState extends State<RoomPage> {
                     if (room.currentActionRole == null) {
                       firstNightEnded = true;
                       imActioner = false;
+                      showWolves = false;
+
+                      audioPlayer.play(JudgeAudioProvider.instance.nightEnd);
                     } else if (myRole.runtimeType == room.currentActionRole.runtimeType) {
                       imActioner = true;
 
@@ -110,7 +125,7 @@ class _RoomPageState extends State<RoomPage> {
                               showWitchActionDialog(room.killedIndex);
                             }
                             if (myRole is Hunter) {
-                              showHunterActionMessage(myRole as ActionableMixin);
+                              showHunterStatusDialog(myRole as ActionableMixin);
                             } else {
                               showActionMessage(myRole as ActionableMixin);
                             }
@@ -120,8 +135,11 @@ class _RoomPageState extends State<RoomPage> {
                         });
                       }
 
-                      if (myRole is Wolf && myRole is Nightmare == false && myRole is Gargoyle == false && myRole is HiddenWolf == false)
-                        showWolves = true;
+                      if (myRole is Wolf &&
+                          myRole is Nightmare == false &&
+                          myRole is Gargoyle == false &&
+                          myRole is HiddenWolf == false &&
+                          myRole is WolfRobot == false) showWolves = true;
                     } else if (room.currentActionRole is Wolf && (myRole is WolfKing || myRole is WolfQueen || myRole is Nightmare)) {
                       imActioner = false;
                       showWolves = true;
@@ -130,26 +148,36 @@ class _RoomPageState extends State<RoomPage> {
                       showWolves = false;
                     }
 
-                    switch (room.currentActionRole.runtimeType) {
-                      case Guard:
-                        print("Guard to go");
-                        break;
-                      case Wolf:
-                        print("Wolf to go");
-                        break;
-                      case WolfQueen:
-                        print("WolfQueen to go");
-                        break;
-                      case Witch:
-                        print("Witch to go");
-                        break;
-                      case Seer:
-                        print("Seer to go");
-                        break;
-                      case Hunter:
-                        print("Hunter to go");
-                        break;
+                    String audioPath = JudgeAudioProvider.instance[room.currentActionRole];
+                    if (audioPath != null) {
+                      audioPlayer.play(audioPath);
                     }
+
+//                    switch (room.currentActionRole.runtimeType) {
+//                      case Guard:
+//                        print("Guard to go");
+//                        audioPlayer.play("guard.m4a");
+//                        break;
+//                      case Wolf:
+//                        print("Wolf to go");
+//                        audioPlayer.play("wolf.m4a");
+//                        break;
+//                      case WolfQueen:
+//                        print("WolfQueen to go");
+//                        audioPlayer.play("wolf_queen.m4a");
+//                        break;
+//                      case Witch:
+//                        print("Witch to go");
+//                        audioPlayer.play("witch.m4a");
+//                        break;
+//                      case Seer:
+//                        print("Seer to go");
+//                        audioPlayer.play("seer.m4a");
+//                        break;
+//                      case Hunter:
+//                        audioPlayer.play("hunter.m4a");
+//                        break;
+//                    }
                   }
 
                   return Column(
@@ -226,7 +254,7 @@ class _RoomPageState extends State<RoomPage> {
                                     Padding(
                                       padding: EdgeInsets.all(12),
                                       child: Material(
-                                          color: ((showWolves && room.players[i].role is Wolf) || (anotherIndex ?? -1 == i))
+                                          color: ((showWolves && room.players[i].role is Wolf) || ((anotherIndex ?? -1) == i))
                                               ? Colors.red
                                               : Colors.orangeAccent,
                                           borderRadius: BorderRadius.all(Radius.circular(16)),
@@ -359,7 +387,7 @@ class _RoomPageState extends State<RoomPage> {
       else
         showEnterSeatDialog(index);
     } else if (imActioner) {
-      if (imMagician && anotherIndex == null) {
+      if (room.currentActionRole is Magician && anotherIndex == null) {
         setState(() {
           anotherIndex = index;
         });
@@ -458,6 +486,8 @@ class _RoomPageState extends State<RoomPage> {
           showActionResultDialog(index, msg);
         } else if (room.currentActionRole is Magician) {
           var target = anotherIndex + index * 100;
+
+          anotherIndex = null;
 
           room.proceed(target);
         } else {
@@ -647,8 +677,24 @@ class _RoomPageState extends State<RoomPage> {
 
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
-      title: Text("你的底牌是："),
-      content: Text(myRole.roleName),
+      backgroundColor: Colors.black,
+      title: Text(
+        "你的底牌是：",
+        style: TextStyle(color: Colors.white),
+      ),
+      content: Container(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Image.asset(RoleImageProvider.instance[myRole], fit: BoxFit.fitHeight),
+            Text(
+              myRole.roleName,
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+      ),
       actions: [
         continueButton,
       ],
@@ -699,9 +745,9 @@ class _RoomPageState extends State<RoomPage> {
       onPressed: () {
         Navigator.pop(context);
 
-        room.startGame();
+        audioPlayer.play(JudgeAudioProvider.instance.night);
 
-        player.play("night.m4a");
+        Timer(Duration(seconds: 3), () => room.startGame());
         //FirestoreProvider.instance.startGame();
       },
     );
@@ -773,7 +819,7 @@ class _RoomPageState extends State<RoomPage> {
     );
   }
 
-  void showHunterActionMessage(ActionableMixin actionableMixin) {
+  void showHunterStatusDialog(ActionableMixin actionableMixin) {
     Widget continueButton = FlatButton(
       child: Text("好"),
       onPressed: () {
@@ -786,6 +832,34 @@ class _RoomPageState extends State<RoomPage> {
     AlertDialog alert = AlertDialog(
       title: Text(actionableMixin.actionMessage),
       content: Text(room.hunterStatus ? "可以发动" : "不可发动"),
+      actions: [
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  void showWolfKingStatusDialog(ActionableMixin actionableMixin) {
+    Widget continueButton = FlatButton(
+      child: Text("好"),
+      onPressed: () {
+        Navigator.pop(context);
+        room.proceed(null);
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text(actionableMixin.actionMessage),
+      content: Text(room.wolfKingStatus ? "可以发动" : "不可发动"),
       actions: [
         continueButton,
       ],

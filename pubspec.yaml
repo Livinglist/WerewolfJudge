@@ -29,6 +29,7 @@ dependencies:
   cloud_firestore: 0.13.7
   shared_preferences: 0.5.8
   pin_code_fields: 4.0.0
+  wakelock: 0.1.4+2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -51,7 +52,52 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/night.m4a
+    - assets/audio/celebrity.m4a
+    - assets/audio/gargoyle.m4a
+    - assets/audio/guard.m4a
+    - assets/audio/hunter.m4a
+    - assets/audio/magician.m4a
+    - assets/audio/moderator.m4a
+    - assets/audio/night.m4a
+    - assets/audio/night_end.m4a
+    - assets/audio/nightmare.m4a
+    - assets/audio/psychic.m4a
+    - assets/audio/seer.m4a
+    - assets/audio/witch.m4a
+    - assets/audio/wolf.m4a
+    - assets/audio/wolf_king.m4a
+    - assets/audio/wolf_queen.m4a
+    - assets/audio/wolf_robot.m4a
+    - assets/images/blood_moon.png
+    - assets/images/celebrity.png
+    - assets/images/cupid.png
+    - assets/images/moderator.png
+    - assets/images/gargoyle.png
+    - assets/images/graveyard_keeper.png
+    - assets/images/guard.png
+    - assets/images/hidden_wolf.png
+    - assets/images/hunter.png
+    - assets/images/idiot.png
+    - assets/images/knight.png
+    - assets/images/wolf_seeder.png
+    - assets/images/magician.png
+    - assets/images/nightmare.png
+    - assets/images/pervert.png
+    - assets/images/seer.png
+    - assets/images/slacker.png
+    - assets/images/thief.png
+    - assets/images/villager.png
+    - assets/images/witch.png
+    - assets/images/witcher.png
+    - assets/images/wolf.png
+    - assets/images/wolf_king.png
+    - assets/images/wolf_queen.png
+    - assets/images/black_trader.png
+
+  fonts:
+    - family: Brands
+      fonts:
+        - asset: assets/fonts/brands.otf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

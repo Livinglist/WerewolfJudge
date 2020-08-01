@@ -102,6 +102,16 @@ class Player {
         return 22;
       case Thief:
         return 23;
+      case Witcher:
+        return 24;
+      case BloodMoon:
+        return 25;
+      case Pervert:
+        return 26;
+      case WolfRobot:
+        return 27;
+      case Psychic:
+        return 28;
       default:
         throw Exception("No corresponding index found for ${role.runtimeType}");
     }
@@ -159,6 +169,16 @@ class Player {
         return Bride();
       case 23:
         return Thief();
+      case 24:
+        return Witcher();
+      case 25:
+        return BloodMoon();
+      case 26:
+        return Pervert();
+      case 27:
+        return WolfRobot();
+      case 28:
+        return Psychic();
       default:
         throw Exception("No corresponding role found for $index");
     }

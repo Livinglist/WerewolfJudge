@@ -1,5 +1,5 @@
+import 'package:werewolfjudge/model/psychic.dart';
 import 'package:werewolfjudge/resource/firestore_provider.dart';
-import 'package:werewolfjudge/ui/config_page.dart';
 
 import 'template.dart';
 import 'role.dart';
@@ -34,6 +34,12 @@ class Room {
     return true;
   }
 
+  bool get wolfKingStatus {
+    var killedByWitch = actions[Witch];
+    if (killedByWitch != null && killedByWitch < 0 && players[(killedByWitch + 1).abs()].role is WolfKing) return false;
+    return true;
+  }
+
   ///Whether or not the skill of the current actioner has been effected by nightmare.
   bool get currentActionerSkillStatus {
     if (template.rolesType.contains(Nightmare)) {
@@ -61,12 +67,13 @@ class Room {
     var savedByWitch = (actions[Witch] ?? -1) > 0 ? actions[Witch] : null;
     var queenIndex =
         actions.containsKey(WolfQueen) ? players.values.singleWhere((element) => element.role is WolfQueen, orElse: () => null).seatNumber : null;
-    var selptWith = actions[WolfQueen];
+    var sleptWith = actions[WolfQueen];
     var guardedByGuard = actions[Guard];
-    var moderatedByModerater = actions[moderator];
-    var nightWalker = actions[celebrity];
+    var moderatedByModerator = actions[Moderator];
+    var nightWalker = actions[Celebrity];
+    //var killedByWitcher = actions[Witcher];
     int firstExchanged, secondExchanged;
-    if (actions.values.contains(Magician) && actions[Magician] != -1) {
+    if (actions.keys.contains(Magician) && actions[Magician] != -1) {
       firstExchanged = actions[Magician] % 100;
       secondExchanged = (actions[Magician] - firstExchanged) ~/ 100;
     }
@@ -81,7 +88,9 @@ class Room {
     print("killedByWitch: $killedByWitch");
     print("savedByWitch: $savedByWitch");
     print("queenIndex: $queenIndex");
-    print("selptWith: $selptWith");
+    print("sleptWith: $sleptWith");
+    print("firstExchanged: $firstExchanged");
+    print("secondExchanged: $secondExchanged");
 
     //奶死
     if (savedByWitch != null && savedByWitch == guardedByGuard) {
@@ -100,7 +109,7 @@ class Room {
 
     //如果狼美人死亡，被连的人殉情
     if (deaths.contains(queenIndex)) {
-      deaths.add(selptWith);
+      deaths.add(sleptWith);
     }
 
     //摄梦人使死亡失效
@@ -110,6 +119,12 @@ class Room {
     if (deaths.contains(celebrityIndex)) {
       deaths.add(nightWalker);
     }
+
+//    if(killedByWitcher != null){
+//      if(players[killedByWitcher].role is Wolf == false){
+//        deaths.add()
+//      }
+//    }
 
     if (deaths.contains(firstExchanged) && deaths.contains(secondExchanged) == false) {
       deaths.remove(firstExchanged);
@@ -131,14 +146,14 @@ class Room {
     info = info.substring(0, info.length - 2);
     info += "玩家死亡。";
 
-    if (moderatedByModerater == nightWalker) moderatedByModerater = null;
+    if (moderatedByModerator == nightWalker) moderatedByModerator = null;
 
     //禁票信息
-    if (moderatedByModerater != null) {
-      if (moderatedByModerater == -1)
+    if (moderatedByModerator != null) {
+      if (moderatedByModerator == -1)
         info += "\n无人被禁票";
       else
-        info += "\n${moderatedByModerater + 1}号被禁票";
+        info += "\n${moderatedByModerator + 1}号被禁票";
     }
 
     return info;
@@ -170,8 +185,11 @@ class Room {
       }
 
       return players[target].role is Wolf ? "狼人" : "好人";
-    }
-    if (currentActionRole is Gargoyle)
+    } else if (currentActionRole is Psychic)
+      return players[target].role.roleName;
+    else if (currentActionRole is WolfRobot)
+      return players[target].role.roleName;
+    else if (currentActionRole is Gargoyle)
       return players[target].role.roleName;
     else
       return null;

@@ -17,6 +17,8 @@ export 'magician.dart';
 export 'tree.dart';
 export 'bride.dart';
 export 'thief.dart';
+export 'witcher.dart';
+export 'psychic.dart';
 
 export 'player.dart';
 

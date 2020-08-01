@@ -1,5 +1,7 @@
 import 'role.dart';
 
+export 'pervert.dart';
+
 class Villager extends Role {
-  Villager() : super(roleName: '普通村民');
+  Villager({String roleName}) : super(roleName: roleName ?? '普通村民');
 }
