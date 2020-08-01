@@ -52,6 +52,20 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/audio_end/celebrity.m4a
+    - assets/audio_end/gargoyle.m4a
+    - assets/audio_end/guard.m4a
+    - assets/audio_end/hunter.m4a
+    - assets/audio_end/magician.m4a
+    - assets/audio_end/moderator.m4a
+    - assets/audio_end/nightmare.m4a
+    - assets/audio_end/psychic.m4a
+    - assets/audio_end/seer.m4a
+    - assets/audio_end/witch.m4a
+    - assets/audio_end/wolf.m4a
+    - assets/audio_end/wolf_king.m4a
+    - assets/audio_end/wolf_queen.m4a
+    - assets/audio_end/wolf_robot.m4a
     - assets/audio/celebrity.m4a
     - assets/audio/gargoyle.m4a
     - assets/audio/guard.m4a

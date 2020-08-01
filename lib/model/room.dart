@@ -98,7 +98,7 @@ class Room {
     }
 
     //没有被救或守
-    if (killedByWolf != null && killedByWolf != guardedByGuard && (savedByWitch == null || savedByWitch != killedByWolf)) {
+    if (killedByWolf != null && killedByWolf != -1 && killedByWolf != guardedByGuard && (savedByWitch == null || savedByWitch != killedByWolf)) {
       deaths.add(killedByWolf);
     }
 

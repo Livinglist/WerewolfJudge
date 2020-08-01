@@ -23,6 +23,7 @@ class RoomPage extends StatefulWidget {
 
 class _RoomPageState extends State<RoomPage> {
   final audioPlayer = AudioCache();
+  final endingDuration = Duration(seconds: 5);
 
   ///Reserved for Magician.
   int anotherIndex;
@@ -148,7 +149,7 @@ class _RoomPageState extends State<RoomPage> {
                       showWolves = false;
                     }
 
-                    String audioPath = JudgeAudioProvider.instance[room.currentActionRole];
+                    String audioPath = JudgeAudioProvider.instance.getBeginningAudio(room.currentActionRole);
                     if (audioPath != null) {
                       audioPlayer.play(audioPath);
                     }
@@ -380,6 +381,11 @@ class _RoomPageState extends State<RoomPage> {
         ));
   }
 
+  void playEndingAudio() {
+    var audioPath = JudgeAudioProvider.instance.getEndingAudio(room.currentActionRole);
+    if (audioPath != null) audioPlayer.play(audioPath);
+  }
+
   void onSeatTapped(int index) {
     if (room.roomStatus == RoomStatus.seating) {
       if (imHost == false && index == mySeatNumber)
@@ -402,7 +408,9 @@ class _RoomPageState extends State<RoomPage> {
         child: Text("确定"),
         onPressed: () {
           Navigator.pop(context);
-          room.proceed(index);
+
+          playEndingAudio();
+          Timer(endingDuration, () => room.proceed(index));
         });
 
     AlertDialog alert = AlertDialog(
@@ -436,7 +444,8 @@ class _RoomPageState extends State<RoomPage> {
           ///Todo: no saving self
         } else {
           Navigator.pop(context);
-          room.proceed(killedIndex, usePoison: false);
+          playEndingAudio();
+          Timer(endingDuration, () => room.proceed(killedIndex, usePoison: false));
         }
       },
     );
@@ -489,9 +498,11 @@ class _RoomPageState extends State<RoomPage> {
 
           anotherIndex = null;
 
-          room.proceed(target);
+          playEndingAudio();
+          Timer(endingDuration, () => room.proceed(target));
         } else {
-          room.proceed(index);
+          playEndingAudio();
+          Timer(endingDuration, () => room.proceed(index));
         }
       },
     );
@@ -747,7 +758,7 @@ class _RoomPageState extends State<RoomPage> {
 
         audioPlayer.play(JudgeAudioProvider.instance.night);
 
-        Timer(Duration(seconds: 3), () => room.startGame());
+        Timer(Duration(seconds: 8), () => room.startGame());
         //FirestoreProvider.instance.startGame();
       },
     );
@@ -824,7 +835,8 @@ class _RoomPageState extends State<RoomPage> {
       child: Text("好"),
       onPressed: () {
         Navigator.pop(context);
-        room.proceed(null);
+        playEndingAudio();
+        Timer(endingDuration, () => room.proceed(null));
       },
     );
 
@@ -852,7 +864,9 @@ class _RoomPageState extends State<RoomPage> {
       child: Text("好"),
       onPressed: () {
         Navigator.pop(context);
-        room.proceed(null);
+
+        playEndingAudio();
+        Timer(endingDuration, () => room.proceed(null));
       },
     );
 
@@ -880,7 +894,9 @@ class _RoomPageState extends State<RoomPage> {
       child: Text("好"),
       onPressed: () {
         Navigator.pop(context);
-        room.proceed(null);
+
+        playEndingAudio();
+        Timer(endingDuration, () => room.proceed(null));
       },
     );
 
