@@ -33,7 +33,7 @@ class _MainPageState extends State<MainPage> {
     return Scaffold(
       appBar: AppBar(
           title: RichText(
-              text: TextSpan(style: TextStyle(color: Colors.black87, fontSize: 18),children: [
+              text: TextSpan(style: TextStyle(color: Colors.black87, fontSize: 18), children: [
         TextSpan(text: '狼杀'),
         TextSpan(text: 'wolf-pack-battalion', style: TextStyle(fontFamily: 'Brands', fontSize: 36)),
         TextSpan(text: '法官')
@@ -113,8 +113,6 @@ class _MainPageState extends State<MainPage> {
                     MainPageTile(
                         title: '进入房间',
                         onTap: () {
-                          ///Todo: Enter room number.
-                          ///Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage()));
                           showEnterRoomDialog();
                         }),
                     MainPageTile(
@@ -125,7 +123,6 @@ class _MainPageState extends State<MainPage> {
                     MainPageTile(
                         title: '返回上局',
                         onTap: () {
-                          //Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage()));
                           var lastRoomNumber = FirestoreProvider.instance.currentRoomNumber;
                           FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
                             if (isValid) {
@@ -136,7 +133,7 @@ class _MainPageState extends State<MainPage> {
                     MainPageTile(
                         title: '历史记录',
                         onTap: () {
-                          //Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
+                          ///Todo: implement history page.
                         }),
                   ],
                 ),

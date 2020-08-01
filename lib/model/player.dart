@@ -51,9 +51,9 @@ class Player {
     this._skillStatus = SkillStatus.values.elementAt(map[skillStatusKey]);
   }
 
-  static int roleToIndex(Role role) {
-    if (role == null) return -1;
-    switch (role.runtimeType) {
+  static int roleTypeToIndex(Type type) {
+    if (type == null) return -1;
+    switch (type) {
       case Villager:
         return 0;
       case Wolf:
@@ -113,8 +113,20 @@ class Player {
       case Psychic:
         return 28;
       default:
-        throw Exception("No corresponding index found for ${role.runtimeType}");
+        throw Exception("No corresponding index found for $type");
     }
+  }
+
+  static Type indexToRoleType(int index) {
+    if (index == -1)
+      return null;
+    else
+      return indexToRole(index).runtimeType;
+  }
+
+  static int roleToIndex(Role role) {
+    if (role == null) return -1;
+    return roleTypeToIndex(role.runtimeType);
   }
 
   static Role indexToRole(int index) {

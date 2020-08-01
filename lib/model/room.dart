@@ -8,6 +8,8 @@ export 'role.dart';
 
 enum RoomStatus { seating, seated, ongoing, terminated }
 
+const String roomNumberKey = 'roomNumber';
+
 class Room {
   String hostUid;
   Template template;
@@ -165,6 +167,18 @@ class Room {
 
   Room.from(
       {this.actions, this.hostUid, this.roomNumber, this.template, this.roomStatus, this.currentActionerIndex, this.hasAntidote, this.hasPoison});
+
+  Room.fromMap(Map<String, dynamic> map) {
+    this.roomNumber = map[roomNumberKey];
+    this.actions = (map[actionsKey] as Map<int, int>).map((k, v) => MapEntry<Type, int>(Player.indexToRoleType(k), v));
+    this.players = (map[actionsKey] as Map<int, Map>).map((k, v) => MapEntry<int, Player>(k, Player.fromMap(v)));
+  }
+
+  Map toMap() => {
+        actionsKey: actions.map((key, value) => MapEntry<int, int>(Player.roleTypeToIndex(key), value)),
+        players: players.map((key, value) => MapEntry<int, Map>(key, value.toMap())),
+        roomNumberKey: roomNumber
+      };
 
   void startGame() {
     FirestoreProvider.instance.startGame();
