@@ -5,19 +5,20 @@ import 'hunter.dart';
 import 'role.dart';
 import 'villager.dart';
 import 'wolf.dart';
-import 'wolfQueen.dart';
+import 'wolf_queen.dart';
 import 'seer.dart';
 import 'witch.dart';
 import 'guard.dart';
 import 'slacker.dart';
 import 'nightmare.dart';
 import 'gargoyle.dart';
-import 'graveyard_keeper.dart';
 
 export 'player.dart';
 
 List<Role> allActionOrder = <Role>[
   Slacker(),
+  Magician(),
+  Celebrity(),
   Gargoyle(),
   Nightmare(),
   Guard(),
@@ -41,6 +42,7 @@ abstract class Template {
 }
 
 //Order: guard -> wolf -> wolf queen -> witch -> seer -> hunter
+@Deprecated("测试用")
 class WolfQueenTemplate extends Template {
   WolfQueenTemplate.newGame()
       : super(name: '预女猎守狼美人12人局', numberOfPlayers: 12, roles: [
@@ -69,46 +71,6 @@ class WolfQueenTemplate extends Template {
 
   WolfQueenTemplate.from({List<dynamic> roles})
       : super(name: '预女猎守狼美人12人局', numberOfPlayers: roles.length, roles: roles.map((e) => e as Role).toList(), actionOrder: [
-          Guard(),
-          Wolf(),
-          WolfQueen(),
-          Witch(),
-          Seer(),
-          Hunter(),
-        ]) {
-    print('constructing ${this.roles}');
-  }
-}
-
-//Order: guard -> wolf -> wolf queen -> witch -> seer -> hunter
-class WolfQueenSlackerTemplate extends Template {
-  WolfQueenSlackerTemplate.newGame()
-      : super(name: '预女猎守狼美人12人局', numberOfPlayers: 12, roles: [
-          Villager(),
-          Villager(),
-          Villager(),
-          Villager(),
-          Wolf(),
-          Wolf(),
-          Wolf(),
-          WolfQueen(),
-          Seer(),
-          Hunter(),
-          Witch(),
-          Guard(),
-        ], actionOrder: [
-          Guard(),
-          Wolf(),
-          WolfQueen(),
-          Witch(),
-          Seer(),
-          Hunter(),
-        ]) {
-    roles.shuffle(Random(DateTime.now().millisecondsSinceEpoch));
-  }
-
-  WolfQueenSlackerTemplate.from({List<dynamic> roles})
-      : super(name: '预女猎守混狼美人13人局', numberOfPlayers: roles.length, roles: roles.map((e) => e as Role).toList(), actionOrder: [
           Guard(),
           Wolf(),
           WolfQueen(),

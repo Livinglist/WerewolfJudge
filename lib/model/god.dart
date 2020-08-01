@@ -13,6 +13,10 @@ export 'knight.dart';
 export 'celebrity.dart';
 export 'cupid.dart';
 export 'moderator.dart';
+export 'magician.dart';
+export 'tree.dart';
+export 'bride.dart';
+export 'thief.dart';
 
 export 'player.dart';
 

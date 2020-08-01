@@ -44,7 +44,7 @@ class FirestoreProvider {
     String roomNum;
 
     do {
-      roomNum = generateRoomNumber().toString();
+      roomNum = generateRoomNumber();
       docRef = Firestore.instance.collection(rooms).document(roomNum);
       docSnap = await docRef.get();
     } while (docSnap.exists && DateTime.fromMillisecondsSinceEpoch(docSnap.data[timestamp]).toLocal().difference(DateTime.now()).inHours <= 2);
@@ -132,8 +132,13 @@ class FirestoreProvider {
     }, merge: true).then((value) => 0);
   }
 
-  static int generateRoomNumber() {
-    int roomNumber = (Random(DateTime.now().millisecondsSinceEpoch).nextDouble() * 10000).toInt();
+  static String generateRoomNumber() {
+    String roomNumber;
+
+    do {
+      roomNumber = (Random(DateTime.now().millisecondsSinceEpoch).nextDouble() * 10000).toInt().toString();
+    } while (roomNumber.length != 4);
+
     return roomNumber;
   }
 

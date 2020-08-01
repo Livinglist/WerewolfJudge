@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:werewolfjudge/model/template.dart';
+import 'package:werewolfjudge/model/wolf_seeder.dart';
 import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
 import 'package:werewolfjudge/resource/firestore_provider.dart';
 import 'room_page.dart';
@@ -38,9 +39,15 @@ const String knight = '骑士';
 const String cupid = '丘比特';
 const String moderator = '禁票长老';
 const String hiddenWolf = '隐狼';
+const String tree = '大树';
+const String magician = '魔术师';
+const String wolfSeeder = '种狼';
+const String bride = '鬼魂新娘';
+const String thief = '盗贼';
 
 class _ConfigPageState extends State<ConfigPage> {
-  Map<String, bool> selectedMap = {
+  final scrollController = ScrollController();
+  final Map<String, bool> selectedMap = {
     wolf: true,
     wolf1: true,
     wolf2: true,
@@ -68,14 +75,40 @@ class _ConfigPageState extends State<ConfigPage> {
     cupid: false,
     moderator: false,
     hiddenWolf: false,
+    tree: false,
+    magician: false,
+    wolfSeeder: false,
+    bride: false,
+    thief: false,
   };
+  bool showShadow = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    scrollController.addListener(() {
+      if (this.mounted) {
+        if (scrollController.offset <= 0) {
+          setState(() {
+            showShadow = false;
+          });
+        } else if (showShadow == false) {
+          setState(() {
+            showShadow = true;
+          });
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.orange,
         appBar: AppBar(
           title: Text('创建房间 ${selectedMap.values.toList().where((e) => e).length}人'),
-          elevation: 0,
+          elevation: showShadow?8:0,
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.check),
@@ -150,6 +183,15 @@ class _ConfigPageState extends State<ConfigPage> {
                     case graveyardKeeper:
                       roles.add(GraveyardKeeper());
                       break;
+                    case tree:
+                      roles.add(Tree());
+                      break;
+                    case magician:
+                      roles.add(Magician());
+                      break;
+                    case wolfSeeder:
+                      roles.add(WolfSeeder());
+                      break;
                     default:
                       throw Exception("Unmatched role: ${i.key}");
                   }
@@ -168,6 +210,7 @@ class _ConfigPageState extends State<ConfigPage> {
           ],
         ),
         body: ListView(
+          controller: scrollController,
           children: <Widget>[
             buildSubTitle('狼人'),
             Divider(),
@@ -241,6 +284,7 @@ class _ConfigPageState extends State<ConfigPage> {
                   buildFilterChip(gargoyle),
                   buildFilterChip(nightmare),
                   buildFilterChip(hiddenWolf),
+                  buildFilterChip(wolfSeeder),
                 ],
               ),
             ),
@@ -301,16 +345,6 @@ class _ConfigPageState extends State<ConfigPage> {
                       });
                     },
                   ),
-                  FilterChip(
-                    elevation: selectedMap[slacker] ? 4 : 0,
-                    label: Text('混子'),
-                    selected: selectedMap[slacker],
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedMap[slacker] = selected;
-                      });
-                    },
-                  ),
                 ],
               ),
             ),
@@ -331,10 +365,25 @@ class _ConfigPageState extends State<ConfigPage> {
                   buildFilterChip(knight),
                   buildFilterChip(cupid),
                   buildFilterChip(celebrity),
-                  buildFilterChip(moderator)
+                  buildFilterChip(moderator),
+                  buildFilterChip(tree),
+                  buildFilterChip(magician),
                 ],
               ),
-            )
+            ),
+            buildSubTitle('特殊'),
+            Divider(),
+            Padding(
+              padding: EdgeInsets.only(left: 12),
+              child: Wrap(
+                spacing: 8,
+                children: <Widget>[
+                  buildFilterChip(slacker),
+                  buildFilterChip(thief),
+                  buildFilterChip(bride),
+                ],
+              ),
+            ),
           ],
         ));
   }

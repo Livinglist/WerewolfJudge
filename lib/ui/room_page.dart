@@ -1,5 +1,6 @@
 import 'package:audioplayers/audio_cache.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:werewolfjudge/model/actionable_mixin.dart';
 import 'package:werewolfjudge/model/player.dart';
@@ -18,10 +19,13 @@ class RoomPage extends StatefulWidget {
 
 class _RoomPageState extends State<RoomPage> {
   final player = AudioCache();
+
+  ///Reserved for Magician.
+  int anotherIndex;
   int mySeatNumber;
   RoomStatus lastRoomStatus;
   Role myRole;
-  bool imHost = false, imActioner = false, showWolves = false, hasShown = false, firstNightEnded = false;
+  bool imHost = false, imActioner = false, showWolves = false, hasShown = false, firstNightEnded = false, imMagician = false;
   Room room;
   double gridHeight;
   String roomInfo;
@@ -48,6 +52,9 @@ class _RoomPageState extends State<RoomPage> {
                   gridHeight = gridHeight ?? ((MediaQuery.of(context).size.width / 4) + 12) * ((room.template.roles.length / 4).ceil());
 
                   var players = room.players;
+
+                  //如果有魔术师
+                  if (room.template.roles.map((e) => e.runtimeType).contains(Magician)) {}
 
                   Map<int, Player> seatToPlayerMap = Map.fromEntries(List.generate(room.template.roles.length, (index) {
                     return MapEntry<int, Player>(
@@ -77,7 +84,6 @@ class _RoomPageState extends State<RoomPage> {
 
                   if (myUid == room.hostUid) {
                     imHost = true;
-                    //only play audio on host phone?
                   } else {
                     imHost = false;
                   }
@@ -99,19 +105,24 @@ class _RoomPageState extends State<RoomPage> {
                         hasShown = true;
 
                         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                          if (myRole is Witch) {
-                            showWitchActionDialog(room.killedIndex);
-                          }
-                          if (myRole is Hunter) {
-                            showHunterActionMessage(myRole as ActionableMixin);
+                          if (room.currentActionerSkillStatus) {
+                            if (myRole is Witch) {
+                              showWitchActionDialog(room.killedIndex);
+                            }
+                            if (myRole is Hunter) {
+                              showHunterActionMessage(myRole as ActionableMixin);
+                            } else {
+                              showActionMessage(myRole as ActionableMixin);
+                            }
                           } else {
-                            showActionMessage(myRole as ActionableMixin);
+                            showActionForbiddenDialog();
                           }
                         });
                       }
 
-                      if (myRole is Wolf) showWolves = true;
-                    } else if (room.currentActionRole is Wolf && (myRole is WolfKing || myRole is WolfQueen)) {
+                      if (myRole is Wolf && myRole is Nightmare == false && myRole is Gargoyle == false && myRole is HiddenWolf == false)
+                        showWolves = true;
+                    } else if (room.currentActionRole is Wolf && (myRole is WolfKing || myRole is WolfQueen || myRole is Nightmare)) {
                       imActioner = false;
                       showWolves = true;
                     } else {
@@ -215,7 +226,9 @@ class _RoomPageState extends State<RoomPage> {
                                     Padding(
                                       padding: EdgeInsets.all(12),
                                       child: Material(
-                                          color: (showWolves && room.players[i].role is Wolf) ? Colors.red : Colors.orangeAccent,
+                                          color: ((showWolves && room.players[i].role is Wolf) || (anotherIndex ?? -1 == i))
+                                              ? Colors.red
+                                              : Colors.orangeAccent,
                                           borderRadius: BorderRadius.all(Radius.circular(16)),
                                           elevation: 8,
                                           child: InkWell(
@@ -346,7 +359,13 @@ class _RoomPageState extends State<RoomPage> {
       else
         showEnterSeatDialog(index);
     } else if (imActioner) {
-      showActionConfirmDialog(index);
+      if (imMagician && anotherIndex == null) {
+        setState(() {
+          anotherIndex = index;
+        });
+      } else {
+        showActionConfirmDialog(index);
+      }
     }
   }
 
@@ -358,7 +377,6 @@ class _RoomPageState extends State<RoomPage> {
           room.proceed(index);
         });
 
-    // set up the AlertDialog
     AlertDialog alert = AlertDialog(
       title: Text("${index + 1}号是$msg。"),
       actions: [
@@ -366,7 +384,6 @@ class _RoomPageState extends State<RoomPage> {
       ],
     );
 
-    // show the dialog
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -377,7 +394,6 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   showWitchActionDialog(int killedIndex) {
-    // set up the buttons
     Widget cancelButton = FlatButton(
       child: Text("不救助"),
       onPressed: () => Navigator.pop(context),
@@ -397,17 +413,26 @@ class _RoomPageState extends State<RoomPage> {
       },
     );
 
-    // set up the AlertDialog
+    ///狼队空刀，无人倒台
+    if (killedIndex == -1) {
+      continueButton = FlatButton(
+        child: Text(
+          "好",
+          style: TextStyle(color: killedIndex == mySeatNumber ? Colors.grey : Colors.orange),
+        ),
+        onPressed: () => Navigator.pop(context),
+      );
+    }
+
     AlertDialog alert = AlertDialog(
-      title: Text("昨夜倒台玩家为${killedIndex + 1}号。"),
-      content: Text("是否救助?"),
+      title: Text(killedIndex == -1 ? "昨夜无人倒台" : "昨夜倒台玩家为${killedIndex + 1}号。"),
+      content: Text(killedIndex == -1 ? "" : "是否救助?"),
       actions: [
-        cancelButton,
+        if (killedIndex != -1) cancelButton,
         continueButton,
       ],
     );
 
-    // show the dialog
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -419,9 +444,11 @@ class _RoomPageState extends State<RoomPage> {
   showActionConfirmDialog(int index) {
     // set up the buttons
     Widget cancelButton = FlatButton(
-      child: Text("取消"),
-      onPressed: () => Navigator.pop(context),
-    );
+        child: Text("取消"),
+        onPressed: () {
+          anotherIndex = null;
+          Navigator.pop(context);
+        });
     Widget continueButton = FlatButton(
       child: Text("确定"),
       onPressed: () {
@@ -429,6 +456,10 @@ class _RoomPageState extends State<RoomPage> {
         var msg = room.action(index);
         if (msg != null) {
           showActionResultDialog(index, msg);
+        } else if (room.currentActionRole is Magician) {
+          var target = anotherIndex + index * 100;
+
+          room.proceed(target);
         } else {
           room.proceed(index);
         }
@@ -438,7 +469,9 @@ class _RoomPageState extends State<RoomPage> {
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
       title: Text(index == -1 ? "不发动技能" : "使用技能"),
-      content: Text(index == -1 ? "确定不发动技能吗？" : "确定${(myRole as ActionableMixin).actionConfirmMessage}${index + 1}号?"),
+      content: Text(index == -1
+          ? "确定不发动技能吗？"
+          : "确定${(myRole as ActionableMixin).actionConfirmMessage}${index + 1}号${secondIndex == null ? "" : "和${secondIndex + 1}号玩家"}?"),
       actions: [
         cancelButton,
         continueButton,
@@ -753,6 +786,34 @@ class _RoomPageState extends State<RoomPage> {
     AlertDialog alert = AlertDialog(
       title: Text(actionableMixin.actionMessage),
       content: Text(room.hunterStatus ? "可以发动" : "不可发动"),
+      actions: [
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  showActionForbiddenDialog() {
+    Widget continueButton = FlatButton(
+      child: Text("好"),
+      onPressed: () {
+        Navigator.pop(context);
+        room.proceed(null);
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("你的技能已被封锁"),
+      content: Text('如果你是狼，请先讨论战术再点击"好"'),
       actions: [
         continueButton,
       ],

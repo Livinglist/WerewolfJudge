@@ -92,6 +92,16 @@ class Player {
         return 17;
       case Moderator:
         return 18;
+      case Magician:
+        return 19;
+      case Tree:
+        return 20;
+      case WolfSeeder:
+        return 21;
+      case Bride:
+        return 22;
+      case Thief:
+        return 23;
       default:
         throw Exception("No corresponding index found for ${role.runtimeType}");
     }
@@ -139,6 +149,16 @@ class Player {
         return Cupid();
       case 18:
         return Moderator();
+      case 19:
+        return Magician();
+      case 20:
+        return Tree();
+      case 21:
+        return WolfSeeder();
+      case 22:
+        return Bride();
+      case 23:
+        return Thief();
       default:
         throw Exception("No corresponding role found for $index");
     }
