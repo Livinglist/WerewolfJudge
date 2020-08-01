@@ -471,7 +471,7 @@ class _RoomPageState extends State<RoomPage> {
       title: Text(index == -1 ? "不发动技能" : "使用技能"),
       content: Text(index == -1
           ? "确定不发动技能吗？"
-          : "确定${(myRole as ActionableMixin).actionConfirmMessage}${index + 1}号${secondIndex == null ? "" : "和${secondIndex + 1}号玩家"}?"),
+          : "确定${(myRole as ActionableMixin).actionConfirmMessage}${index + 1}号${anotherIndex == null ? "" : "和${anotherIndex + 1}号玩家"}?"),
       actions: [
         cancelButton,
         continueButton,
