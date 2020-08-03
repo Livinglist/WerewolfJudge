@@ -112,6 +112,10 @@ class Player {
         return 27;
       case Psychic:
         return 28;
+      case WolfBrother:
+        return 29;
+      case LuckySon:
+        return 30;
       default:
         throw Exception("No corresponding index found for $type");
     }
@@ -191,6 +195,10 @@ class Player {
         return WolfRobot();
       case 28:
         return Psychic();
+      case 29:
+        return WolfBrother();
+      case 30:
+        return LuckySon();
       default:
         throw Exception("No corresponding role found for $index");
     }

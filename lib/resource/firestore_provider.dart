@@ -22,6 +22,7 @@ const String actionsKey = 'actions';
 const String currentActionerIndexKey = 'currentActionerIndex';
 const String hasPosionKey = 'hasPoison';
 const String hasAntidoteKey = 'hasAntidote';
+const String luckySonVerificationsCountKey = 'luckySonVerificationsCount';
 
 class FirestoreProvider {
   static final instance = FirestoreProvider._();
@@ -75,13 +76,12 @@ class FirestoreProvider {
       if (value.exists == false) return false;
       if (DateTime.fromMillisecondsSinceEpoch(value.data[timestamp]).toLocal().difference(DateTime.now()).inHours >= 2) return false;
 
-      currentRoomNumber = roomNum;
-
       return true;
     });
   }
 
   Stream<Room> fetchRoom(String roomNum) {
+    currentRoomNumber = roomNum;
     return Firestore.instance.collection(rooms).document(roomNum).snapshots().transform<Room>(StreamTransformer.fromHandlers(handleData: handleDate));
   }
 
@@ -201,14 +201,7 @@ class FirestoreProvider {
   void performAction(Role role, int targetSeat, int currentActionerIndex, {bool usePoison = false}) {
     DocumentReference docRef = Firestore.instance.collection(rooms).document(currentRoomNumber);
 
-    if (role is Witch) {
-      docRef.setData({
-        actionsKey: {
-          Player.roleToIndex(role).toString(): usePoison ? -1 * (targetSeat + 1) : targetSeat,
-        },
-        currentActionerIndexKey: currentActionerIndex
-      }, merge: true);
-    } else if (role is Hunter) {
+    if (targetSeat == null) {
       docRef.setData({currentActionerIndexKey: currentActionerIndex}, merge: true);
     } else {
       docRef.setData({
@@ -218,5 +211,17 @@ class FirestoreProvider {
         currentActionerIndexKey: currentActionerIndex
       }, merge: true);
     }
+  }
+
+  Future<void> checkInForLuckySonVerifications({int myIndex, int totalPlayers, int currentActionerIndex}) async {
+    DocumentReference docRef = Firestore.instance.collection(rooms).document(currentRoomNumber);
+    DocumentSnapshot docSnap = await docRef.get();
+
+    var count = docSnap.data[luckySonVerificationsCountKey];
+
+    if (count != null && count + 1 == totalPlayers)
+      docRef.setData({currentActionerIndexKey: currentActionerIndex}, merge: true);
+    else
+      docRef.setData({luckySonVerificationsCountKey: FieldValue.increment(1)}, merge: true);
   }
 }

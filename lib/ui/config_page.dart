@@ -49,6 +49,7 @@ const String bloodMoon = '血月使徒';
 const String pervert = '老流氓';
 const String wolfRobot = '机械狼';
 const String psychic = '通灵师';
+const String wolfBrother = '狼兄';
 
 class _ConfigPageState extends State<ConfigPage> {
   final scrollController = ScrollController();
@@ -90,6 +91,7 @@ class _ConfigPageState extends State<ConfigPage> {
     pervert: false,
     wolfRobot: false,
     psychic: false,
+    wolfBrother: false,
   };
   bool showShadow = false;
 
@@ -174,6 +176,7 @@ class _ConfigPageState extends State<ConfigPage> {
                       break;
                     case blackTrader:
                       roles.add(BlackTrader());
+                      roles.add(LuckySon());
                       break;
                     case knight:
                       roles.add(Knight());
@@ -222,6 +225,9 @@ class _ConfigPageState extends State<ConfigPage> {
                       break;
                     case psychic:
                       roles.add(Psychic());
+                      break;
+                    case wolfBrother:
+                      roles.add(WolfBrother());
                       break;
                     default:
                       throw Exception("Unmatched role: ${i.key}");
@@ -318,6 +324,7 @@ class _ConfigPageState extends State<ConfigPage> {
                   buildFilterChip(wolfSeeder),
                   buildFilterChip(bloodMoon),
                   buildFilterChip(wolfRobot),
+                  buildFilterChip(wolfBrother)
                 ],
               ),
             ),

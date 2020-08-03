@@ -12,6 +12,8 @@ import 'package:werewolfjudge/resource/firestore_provider.dart';
 import 'package:werewolfjudge/resource/judge_audio_provider.dart';
 import 'package:werewolfjudge/resource/role_image_provider.dart';
 
+import 'components/black_trader_dialog.dart';
+
 class RoomPage extends StatefulWidget {
   final String roomNumber;
 
@@ -109,12 +111,37 @@ class _RoomPageState extends State<RoomPage> {
 
                   if (room.roomStatus == RoomStatus.ongoing) {
                     if (room.currentActionRole == null) {
-                      firstNightEnded = true;
-                      imActioner = false;
-                      showWolves = false;
+                      if (room.template.rolesType.contains(BlackTrader)) {
+                        firstNightEnded = false;
+                        imActioner = false;
+                        showWolves = false;
 
-                      audioPlayer.play(JudgeAudioProvider.instance.nightEnd);
+                        if (imHost) {
+                          audioPlayer.play(JudgeAudioProvider.instance.night);
+
+                          Timer(Duration(seconds: 6), () {
+                            firstNightEnded = true;
+                          });
+                        }
+                      } else {
+                        firstNightEnded = true;
+                        imActioner = false;
+                        showWolves = false;
+
+                        if (imHost) audioPlayer.play(JudgeAudioProvider.instance.nightEnd);
+                      }
+                    } else if (room.currentActionRole is LuckySon) {
+                      imActioner = false;
+
+                      if (hasShown == false) {
+                        hasShown = true;
+
+                        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                          showLuckySonVerificationDialog();
+                        });
+                      }
                     } else if (myRole.runtimeType == room.currentActionRole.runtimeType) {
+                      //wolfking.runtimeType does not equal to wolf.runTimeType
                       imActioner = true;
 
                       if (hasShown == false) {
@@ -124,9 +151,10 @@ class _RoomPageState extends State<RoomPage> {
                           if (room.currentActionerSkillStatus) {
                             if (myRole is Witch) {
                               showWitchActionDialog(room.killedIndex);
-                            }
-                            if (myRole is Hunter) {
+                            } else if (myRole is Hunter) {
                               showHunterStatusDialog(myRole as ActionableMixin);
+                            } else if (myRole is WolfBrother) {
+                              showWolfBrotherActionMessage(myRole as ActionableMixin);
                             } else {
                               showActionMessage(myRole as ActionableMixin);
                             }
@@ -141,17 +169,21 @@ class _RoomPageState extends State<RoomPage> {
                           myRole is Gargoyle == false &&
                           myRole is HiddenWolf == false &&
                           myRole is WolfRobot == false) showWolves = true;
-                    } else if (room.currentActionRole is Wolf && (myRole is WolfKing || myRole is WolfQueen || myRole is Nightmare)) {
-                      imActioner = false;
+                    } else if (room.currentActionRole is Wolf &&
+                        (myRole is WolfKing || myRole is WolfQueen || myRole is Nightmare || myRole is WolfBrother)) {
+                      showActionMessage(myRole as Wolf);
+                      imActioner = true;
                       showWolves = true;
                     } else {
                       imActioner = false;
                       showWolves = false;
                     }
 
-                    String audioPath = JudgeAudioProvider.instance.getBeginningAudio(room.currentActionRole);
-                    if (audioPath != null) {
-                      audioPlayer.play(audioPath);
+                    if (imHost) {
+                      String audioPath = JudgeAudioProvider.instance.getBeginningAudio(room.currentActionRole);
+                      if (audioPath != null) {
+                        audioPlayer.play(audioPath);
+                      }
                     }
 
 //                    switch (room.currentActionRole.runtimeType) {
@@ -306,9 +338,21 @@ class _RoomPageState extends State<RoomPage> {
                       ),
                       Spacer(),
                       if (imActioner) Padding(padding: EdgeInsets.only(bottom: 12), child: Text((myRole as ActionableMixin).actionMessage)),
+                      if (room.currentActionRole is LuckySon) Padding(padding: EdgeInsets.only(bottom: 12), child: Text("请确认自己是否是幸运儿")),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
+                          if (room.currentActionRole is LuckySon)
+                            Padding(
+                              padding: EdgeInsets.only(bottom: 12),
+                              child: RaisedButton(
+                                child: Text('查看礼物'),
+                                onPressed: () {
+                                  showGiftDialog();
+                                },
+                              ),
+                            ),
+                          if (room.currentActionRole is LuckySon) SizedBox(width: 12),
                           if (imHost && room.roomStatus == RoomStatus.seating)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
@@ -334,7 +378,7 @@ class _RoomPageState extends State<RoomPage> {
                               ),
                             ),
                           if (imHost) SizedBox(width: 12),
-                          if (imActioner && myRole is Hunter == false)
+                          if (imActioner && myRole is Hunter == false && myRole is BlackTrader == false)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
                               child: RaisedButton(
@@ -397,6 +441,8 @@ class _RoomPageState extends State<RoomPage> {
         setState(() {
           anotherIndex = index;
         });
+      } else if (room.currentActionRole is BlackTrader) {
+        if (index != mySeatNumber) showBlackTraderActionDialog(index);
       } else {
         showActionConfirmDialog(index);
       }
@@ -425,6 +471,22 @@ class _RoomPageState extends State<RoomPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return alert;
+      },
+    );
+  }
+
+  showBlackTraderActionDialog(int giftedIndex) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return BlackTraderDialog(
+            index: giftedIndex,
+            onCancel: () => Navigator.pop(context),
+            onContinue: (Type giftedType) {
+              Navigator.pop(context);
+              playEndingAudio();
+              Timer(endingDuration, () => room.proceed(giftedIndex, giftedByBlackTrader: giftedType));
+            });
       },
     );
   }
@@ -806,6 +868,31 @@ class _RoomPageState extends State<RoomPage> {
     );
   }
 
+  void showWolfBrotherActionMessage(ActionableMixin actionableMixin) {
+    Widget continueButton = FlatButton(
+        child: Text("结束互认"),
+        onPressed: () {
+          Navigator.pop(context);
+          playEndingAudio();
+          Timer(endingDuration, () => room.proceed(null));
+        });
+
+    AlertDialog alert = AlertDialog(
+      title: Text(actionableMixin.actionMessage),
+      content: Text(""),
+      actions: [
+        continueButton,
+      ],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
   void showActionMessage(ActionableMixin actionableMixin) {
     Widget continueButton = FlatButton(
       child: Text("好"),
@@ -904,6 +991,61 @@ class _RoomPageState extends State<RoomPage> {
     AlertDialog alert = AlertDialog(
       title: Text("你的技能已被封锁"),
       content: Text('如果你是狼，请先讨论战术再点击"好"'),
+      actions: [
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  showLuckySonVerificationDialog() {
+    Widget continueButton = FlatButton(
+      child: Text("好"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("请确认自己是否是幸运儿"),
+      actions: [
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  showGiftDialog() {
+    Widget continueButton = FlatButton(
+      child: Text("确认"),
+      onPressed: () {
+        Navigator.pop(context);
+
+        room.checkInForLuckySonVerifications(mySeatNumber);
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text(mySeatNumber == room.luckySonIndex ? "你收到了礼物" : "你没有收到礼物"),
+      content: mySeatNumber == room.luckySonIndex ? Text(room.giftInfo) : Container(),
       actions: [
         continueButton,
       ],

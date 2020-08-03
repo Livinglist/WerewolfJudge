@@ -28,7 +28,47 @@ class Room {
 
   bool hasPoison = false, hasAntidote = false;
 
-  Role get currentActionRole => currentActionerIndex == template.actionOrder.length ? null : template.actionOrder[currentActionerIndex];
+  Role get currentActionRole {
+    if (currentActionerIndex == template.actionOrder.length) {
+      if (template.rolesType.contains(BlackTrader))
+        return LuckySon();
+      else
+        return null;
+    } else {
+      //如果有黑商，为了确认谁是幸运儿，夜间会多一个轮次
+      if (currentActionerIndex == template.actionOrder.length + 1) return null;
+      else return template.actionOrder[currentActionerIndex];
+    }
+  }
+
+  int get luckySonIndex {
+    int index = actions[BlackTrader];
+    if (index == null || index == -1) return -1;
+
+    index = index % 100;
+
+    return index;
+  }
+
+  String get giftInfo {
+    int index = actions[BlackTrader];
+    if (index == null || index == -1) return "";
+
+    int roleIndex = (index - index % 100) ~/ 100;
+
+    Type roleType = Player.indexToRoleType(roleIndex);
+
+    switch (roleType) {
+      case Witch:
+        return "女巫的毒药";
+      case Hunter:
+        return "猎人的枪";
+      case Seer:
+        return "预言家的眼镜";
+      default:
+        throw Exception("Unmatched $roleType");
+    }
+  }
 
   bool get hunterStatus {
     var killedByWitch = actions[Witch];
@@ -73,6 +113,10 @@ class Room {
     var guardedByGuard = actions[Guard];
     var moderatedByModerator = actions[Moderator];
     var nightWalker = actions[Celebrity];
+    var blackTraderTarget = actions[Player.roleTypeToIndex(BlackTrader)];
+    var blackTraderIndex =
+        actions.containsKey(BlackTrader) ? players.values.singleWhere((element) => element.role is BlackTrader, orElse: () => null).seatNumber : null;
+
     //var killedByWitcher = actions[Witcher];
     int firstExchanged, secondExchanged;
     if (actions.keys.contains(Magician) && actions[Magician] != -1) {
@@ -134,6 +178,10 @@ class Room {
     } else if (deaths.contains(firstExchanged) == false && deaths.contains(secondExchanged)) {
       deaths.remove(secondExchanged);
       deaths.add(firstExchanged);
+    }
+
+    if (blackTraderTarget != null && blackTraderTarget == -1) {
+      deaths.add(blackTraderIndex);
     }
 
     if (deaths.isEmpty) {
@@ -210,15 +258,26 @@ class Room {
   }
 
   //Order: guard -> wolf -> wolf queen -> witch -> seer -> hunter
-  void proceed(int target, {bool usePoison = true}) {
-    //var currentActionRole = template.actionOrder[currentActionerIndex];
-
-//    Player currentActionPlayer;
-//
-//    if (currentActionRole is Wolf == false) {
-//      currentActionPlayer = players.values.singleWhere((player) => player.role.runtimeType == currentActionRole.runtimeType);
-//    }
+  void proceed(int target, {bool usePoison = true, Type giftedByBlackTrader = Witch}) {
+    if (currentActionRole is Witch) {
+      target = usePoison ? -1 * (target + 1) : target;
+    } else if (currentActionRole is Hunter || currentActionRole is WolfBrother) {
+      target = null;
+    } else if (currentActionRole is BlackTrader) {
+      //如果黑商选择的玩家是狼人，那么target变为-1，意为黑商倒台
+      if (players[target].role is Wolf) {
+        target = -1;
+      } else {
+        var indexOfRole = Player.roleTypeToIndex(giftedByBlackTrader);
+        target = target + indexOfRole * 100;
+      }
+    }
 
     FirestoreProvider.instance.performAction(currentActionRole, target, currentActionerIndex + 1, usePoison: usePoison);
+  }
+
+  void checkInForLuckySonVerifications(int myIndex) {
+    FirestoreProvider.instance
+        .checkInForLuckySonVerifications(myIndex: myIndex, totalPlayers: players.length, currentActionerIndex: currentActionerIndex + 1);
   }
 }

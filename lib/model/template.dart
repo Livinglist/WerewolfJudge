@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:werewolfjudge/model/wolf_brother.dart';
 import 'package:werewolfjudge/util/list_extension.dart';
 
 import 'role.dart';
@@ -14,6 +15,7 @@ List<Role> allActionOrder = <Role>[
   Gargoyle(),
   Nightmare(),
   Guard(),
+  WolfBrother(),
   Wolf(),
   WolfQueen(),
   Witch(),
@@ -21,7 +23,9 @@ List<Role> allActionOrder = <Role>[
   Psychic(),
   Hunter(),
   WolfKing(),
+  BlackTrader(),
   Moderator(),
+  LuckySon()
 ];
 
 abstract class Template {
@@ -78,7 +82,11 @@ class WolfQueenTemplate extends Template {
 
 class CustomTemplate extends Template {
   CustomTemplate.newGame({List<Role> roles})
-      : super(name: '', numberOfPlayers: roles.length, roles: roles, actionOrder: allActionOrder.where((value) => roles.hasType(value)).toList()) {
+      : super(
+            name: '',
+            numberOfPlayers: roles.length,
+            roles: roles..removeWhere((element) => element is LuckySon),
+            actionOrder: allActionOrder.where((value) => roles.hasType(value)).toList()) {
     roles.shuffle(Random(DateTime.now().millisecondsSinceEpoch));
   }
 
