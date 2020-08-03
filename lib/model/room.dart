@@ -45,6 +45,14 @@ class Room {
     }
   }
 
+  Role get lastActionRole {
+    if (currentActionerIndex == 0 || currentActionerIndex > template.actionOrder.length + 1) return null;
+
+    if (currentActionerIndex == template.actionOrder.length + 1) return LuckySon();
+
+    return template.actionOrder[currentActionerIndex - 1];
+  }
+
   int get luckySonIndex {
     int index = actions[BlackTrader];
     if (index == null || index == -1) return -1;
@@ -268,6 +276,7 @@ class Room {
 
   ///Take the seat number of target and return message if needed.
   String action(int target, {bool usePoison = false}) {
+    print("${players[target]} is ${players[target].role} ${players[target] is HiddenWolf}");
     if (currentActionRole is Seer) {
       if (actions.values.contains(Magician) && actions[Magician] != -1) {
         int first = actions[Magician] % 100;
@@ -278,6 +287,8 @@ class Room {
         } else if (target == second) {
           return players[first].role is Wolf ? "狼人" : "好人";
         }
+      } else if (players[target].role is HiddenWolf) {
+        return "好人";
       }
 
       return players[target].role is Wolf ? "狼人" : "好人";

@@ -39,7 +39,7 @@ class FirestoreProvider {
   }
 
   ///Create a room using [uid] of host and [numOfSeats]
-  Future<String> newRoom({String uid, int numOfSeats, Template template}) async {
+  Future<String> newRoom({String uid, Template template}) async {
     DocumentReference docRef;
     DocumentSnapshot docSnap;
     String roomNum;
@@ -55,7 +55,6 @@ class FirestoreProvider {
           hasPosionKey: true,
           hasAntidoteKey: true,
           timestamp: DateTime.now().toUtc().millisecondsSinceEpoch,
-          totalSeats: numOfSeats,
           hostUidKey: uid,
           roomStatus: RoomStatus.seating.index,
           rolesKey: template.roles.map((e) => Player.roleToIndex(e)).toList(),

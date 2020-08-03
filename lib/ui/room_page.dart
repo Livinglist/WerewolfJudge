@@ -25,14 +25,22 @@ class RoomPage extends StatefulWidget {
 
 class _RoomPageState extends State<RoomPage> {
   final audioPlayer = AudioCache();
-  final endingDuration = Duration(seconds: 5);
+  final endingDuration = Duration(seconds: 0);
 
   ///Reserved for Magician.
   int anotherIndex;
   int mySeatNumber;
   RoomStatus lastRoomStatus;
   Role myRole;
-  bool imHost = false, imActioner = false, showWolves = false, hasShown = false, firstNightEnded = false, imMagician = false;
+  bool imHost = false,
+      imActioner = false,
+      showWolves = false,
+      hasShown = false,
+      firstNightEnded = false,
+      imMagician = false,
+      luckySonPlayed = false,
+      hasShownLuckySonDialog = false,
+      hasPlayedLuckSon = false;
   Room room;
   double gridHeight;
 
@@ -107,6 +115,7 @@ class _RoomPageState extends State<RoomPage> {
                             setState(() {
                               firstNightEnded = true;
                             });
+                            audioPlayer.play(JudgeAudioProvider.instance.nightEnd);
                           });
                         }
                       } else {
@@ -119,8 +128,8 @@ class _RoomPageState extends State<RoomPage> {
                     } else if (room.currentActionRole is LuckySon) {
                       imActioner = false;
 
-                      if (hasShown == false) {
-                        hasShown = true;
+                      if (hasShownLuckySonDialog == false) {
+                        hasShownLuckySonDialog = true;
 
                         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
                           showLuckySonVerificationDialog();
@@ -154,10 +163,11 @@ class _RoomPageState extends State<RoomPage> {
                           myRole is Nightmare == false &&
                           myRole is Gargoyle == false &&
                           myRole is HiddenWolf == false &&
-                          myRole is WolfRobot == false) showWolves = true;
+                          myRole is WolfRobot == false &&
+                          myRole is WolfBrother == false) showWolves = true;
                     } else if (room.currentActionRole is Wolf &&
                         (myRole is WolfKing || myRole is WolfQueen || myRole is Nightmare || myRole is WolfBrother)) {
-                      showActionMessage(myRole as Wolf);
+                      //showActionMessage((myRole as Wolf) as ActionableMixin);
                       imActioner = true;
                       showWolves = true;
                     } else {
@@ -166,9 +176,23 @@ class _RoomPageState extends State<RoomPage> {
                     }
 
                     if (imHost) {
+                      String endAudioPath = JudgeAudioProvider.instance.getEndingAudio(room.lastActionRole);
                       String audioPath = JudgeAudioProvider.instance.getBeginningAudio(room.currentActionRole);
-                      if (audioPath != null) {
-                        audioPlayer.play(audioPath);
+
+                      var timelapse = Duration(seconds: 5);
+
+                      if (room.template.rolesType.contains(BlackTrader) == false ||
+                          (room.template.rolesType.contains(BlackTrader) && hasPlayedLuckSon == false)) {
+                        if (room.currentActionRole is LuckySon) hasPlayedLuckSon = true;
+
+                        if (endAudioPath != null) {
+                          audioPlayer.play(endAudioPath);
+                        }
+
+                        if (audioPath != null)
+                          Timer(timelapse, () {
+                            audioPlayer.play(audioPath);
+                          });
                       }
                     }
 
@@ -323,11 +347,14 @@ class _RoomPageState extends State<RoomPage> {
                         ),
                       ),
                       Spacer(),
-                      if (imActioner) Padding(padding: EdgeInsets.only(bottom: 12), child: Text((myRole as ActionableMixin).actionMessage)),
+                      if (imActioner)
+                        Padding(
+                            padding: EdgeInsets.only(bottom: 12),
+                            child: Text(myRole is Wolf ? Wolf().actionMessage : (myRole as ActionableMixin).actionMessage)),
                       if (room.currentActionRole is LuckySon) Padding(padding: EdgeInsets.only(bottom: 12), child: Text("请确认自己是否是幸运儿")),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
+                        children: buildPadding(children: [
                           if (room.currentActionRole is LuckySon)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
@@ -338,7 +365,6 @@ class _RoomPageState extends State<RoomPage> {
                                 },
                               ),
                             ),
-                          if (room.currentActionRole is LuckySon) SizedBox(width: 12),
                           if (imHost && room.roomStatus == RoomStatus.seating)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
@@ -363,7 +389,6 @@ class _RoomPageState extends State<RoomPage> {
                                 },
                               ),
                             ),
-                          if (imHost) SizedBox(width: 12),
                           if (imActioner && myRole is Hunter == false && myRole is BlackTrader == false)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
@@ -374,7 +399,6 @@ class _RoomPageState extends State<RoomPage> {
                                 },
                               ),
                             ),
-                          if (imActioner && myRole is Hunter == false) SizedBox(width: 12),
                           if (imHost && firstNightEnded)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
@@ -385,7 +409,6 @@ class _RoomPageState extends State<RoomPage> {
                                 },
                               ),
                             ),
-                          if (imHost && firstNightEnded) SizedBox(width: 12),
                           if (room.roomStatus != RoomStatus.seating)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
@@ -396,7 +419,7 @@ class _RoomPageState extends State<RoomPage> {
                                 },
                               ),
                             ),
-                        ],
+                        ]),
                       )
                     ],
                   );
@@ -520,6 +543,7 @@ class _RoomPageState extends State<RoomPage> {
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return alert;
       },
@@ -859,8 +883,8 @@ class _RoomPageState extends State<RoomPage> {
         child: Text("结束互认"),
         onPressed: () {
           Navigator.pop(context);
-          playEndingAudio();
-          Timer(endingDuration, () => room.proceed(null));
+          //playEndingAudio();
+          room.proceed(null);
         });
 
     AlertDialog alert = AlertDialog(
@@ -1031,7 +1055,7 @@ class _RoomPageState extends State<RoomPage> {
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
       title: Text(mySeatNumber == room.luckySonIndex ? "你收到了礼物" : "你没有收到礼物"),
-      content: mySeatNumber == room.luckySonIndex ? Text(room.giftInfo) : Container(),
+      content: Text(mySeatNumber == room.luckySonIndex ? room.giftInfo : ''),
       actions: [
         continueButton,
       ],
@@ -1045,5 +1069,13 @@ class _RoomPageState extends State<RoomPage> {
         return alert;
       },
     );
+  }
+
+  List<Widget> buildPadding({List<Widget> children}) {
+    for (int i = 1; i < children.length; i += 2) {
+      children.insert(i, SizedBox(width: 12));
+    }
+
+    return children;
   }
 }
