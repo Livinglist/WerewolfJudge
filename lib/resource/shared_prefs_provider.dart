@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:werewolfjudge/model/room.dart';
@@ -5,13 +7,13 @@ import 'package:werewolfjudge/model/room.dart';
 const roomHistoryKey = 'roomHistory';
 
 class SharedPreferencesProvider {
+  static final instance = SharedPreferencesProvider._();
+
   static SharedPreferences _sharedPreferences;
 
   SharedPreferencesProvider._() {
     if (_sharedPreferences == null) initSharedPrefs();
   }
-
-  static final instance = SharedPreferencesProvider._();
 
   SharedPreferencesProvider() {
     initSharedPrefs();
@@ -22,24 +24,13 @@ class SharedPreferencesProvider {
     if (!_sharedPreferences.containsKey(roomHistoryKey)) {}
   }
 
-  List<String> getAllFavKanjiStrs() => _sharedPreferences.getStringList(roomHistoryKey);
-
-  List<String> uids = [];
-
-  void addFav(String kanjiStr) {
-    var favKanjiStrs = _sharedPreferences.getStringList(roomHistoryKey);
-    favKanjiStrs.add(kanjiStr);
-    _sharedPreferences.setStringList(roomHistoryKey, favKanjiStrs);
-  }
-
-  void removeFav(String kanjiStr) {
-    var favKanjiStrs = _sharedPreferences.getStringList(roomHistoryKey);
-    favKanjiStrs.remove(kanjiStr);
-    _sharedPreferences.setStringList(roomHistoryKey, favKanjiStrs);
+  void update(List<Room> rooms) {
+    _sharedPreferences.setStringList(roomHistoryKey, rooms.map((e) => jsonEncode(e.toMap())));
   }
 
   List<Room> getAllRoomHistory() {
     var roomsJsonStrings = _sharedPreferences.getStringList(roomHistoryKey);
-
+    var rooms = roomsJsonStrings.map((e) => Room.fromMap(jsonDecode(e)));
+    return rooms;
   }
 }

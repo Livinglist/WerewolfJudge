@@ -1,4 +1,5 @@
 import 'package:werewolfjudge/model/psychic.dart';
+import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
 import 'package:werewolfjudge/resource/firestore_provider.dart';
 
 import 'template.dart';
@@ -11,6 +12,7 @@ enum RoomStatus { seating, seated, ongoing, terminated }
 const String roomNumberKey = 'roomNumber';
 
 class Room {
+  int timestamp;
   String hostUid;
   Template template;
   String roomNumber;
@@ -36,8 +38,10 @@ class Room {
         return null;
     } else {
       //如果有黑商，为了确认谁是幸运儿，夜间会多一个轮次
-      if (currentActionerIndex == template.actionOrder.length + 1) return null;
-      else return template.actionOrder[currentActionerIndex];
+      if (currentActionerIndex == template.actionOrder.length + 1)
+        return null;
+      else
+        return template.actionOrder[currentActionerIndex];
     }
   }
 
@@ -101,6 +105,23 @@ class Room {
     }
 
     return true;
+  }
+
+  String get roomInfo {
+    var roomInfo = '';
+    var villagerCount = template.roles.whereType<Villager>().length;
+    var wolfCount = template.roles.where((e) => e.runtimeType == Wolf).length;
+
+    roomInfo += '村民x$villagerCount, ';
+    roomInfo += '普狼x$wolfCount, ';
+    for (var i in template.roles) {
+      if (i.runtimeType != Wolf && i is Villager == false) roomInfo += i.roleName + ', ';
+    }
+
+    //remove the last comma.
+    roomInfo = roomInfo.substring(0, roomInfo.length - 2);
+
+    return roomInfo;
   }
 
   String get lastNightInfo {
@@ -216,18 +237,29 @@ class Room {
   Room.create({this.hostUid, this.roomNumber, this.template}) : roomStatus = RoomStatus.seating;
 
   Room.from(
-      {this.actions, this.hostUid, this.roomNumber, this.template, this.roomStatus, this.currentActionerIndex, this.hasAntidote, this.hasPoison});
+      {this.actions,
+      this.hostUid,
+      this.roomNumber,
+      this.template,
+      this.timestamp,
+      this.roomStatus,
+      this.currentActionerIndex,
+      this.hasAntidote,
+      this.hasPoison,
+      this.players});
 
   Room.fromMap(Map<String, dynamic> map) {
+    this.timestamp = map[timestampKey];
     this.roomNumber = map[roomNumberKey];
     this.actions = (map[actionsKey] as Map<int, int>).map((k, v) => MapEntry<Type, int>(Player.indexToRoleType(k), v));
     this.players = (map[actionsKey] as Map<int, Map>).map((k, v) => MapEntry<int, Player>(k, Player.fromMap(v)));
   }
 
   Map toMap() => {
-        actionsKey: actions.map((key, value) => MapEntry<int, int>(Player.roleTypeToIndex(key), value)),
-        players: players.map((key, value) => MapEntry<int, Map>(key, value.toMap())),
-        roomNumberKey: roomNumber
+        timestampKey: this.timestamp,
+        actionsKey: this.actions.map((key, value) => MapEntry<int, int>(Player.roleTypeToIndex(key), value)),
+        playersKey: this.players.map((key, value) => MapEntry<int, Map>(key, value.toMap())),
+        roomNumberKey: this.roomNumber
       };
 
   void startGame() {

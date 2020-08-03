@@ -8,6 +8,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
 import 'package:werewolfjudge/resource/firestore_provider.dart';
+import 'package:werewolfjudge/ui/history_page.dart';
 import 'package:werewolfjudge/ui/room_page.dart';
 import 'package:werewolfjudge/util/phone_number_formatter.dart';
 
@@ -133,7 +134,7 @@ class _MainPageState extends State<MainPage> {
                     MainPageTile(
                         title: '历史记录',
                         onTap: () {
-                          ///Todo: implement history page.
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryPage()));
                         }),
                   ],
                 ),

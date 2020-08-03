@@ -153,6 +153,7 @@ class FirestoreProvider {
     var roles = (docSnap.data[rolesKey]).map((e) => Player.indexToRole(e)).toList();
     var players = (docSnap.data[playersKey] as Map).map((k, e) => MapEntry(int.parse(k), e == null ? null : Player.fromMap(e)));
     var template = CustomTemplate.from(roles: roles);
+    var timestamp = docSnap.data[timestampKey];
     var currentActionerIndex = docSnap.data[currentActionerIndexKey] ?? 0;
 
     var hasPoison = docSnap.data[hasPosionKey] ?? true;
@@ -167,13 +168,14 @@ class FirestoreProvider {
         roomStatus: roomStatus,
         currentActionerIndex: currentActionerIndex,
         hasPoison: hasPoison,
-        hasAntidote: hasAntidote);
+        hasAntidote: hasAntidote,
+        players: players);
     print("asd9");
 
     print(players);
 
-    room.players.clear();
-    room.players.addAll(players);
+//    room.players.clear();
+//    room.players.addAll(players);
 
     print(room.players);
 

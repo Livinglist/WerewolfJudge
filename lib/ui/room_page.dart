@@ -35,7 +35,6 @@ class _RoomPageState extends State<RoomPage> {
   bool imHost = false, imActioner = false, showWolves = false, hasShown = false, firstNightEnded = false, imMagician = false;
   Room room;
   double gridHeight;
-  String roomInfo;
 
   @override
   void initState() {
@@ -80,21 +79,6 @@ class _RoomPageState extends State<RoomPage> {
                     if (players[i] != null && players[i].uid == myUid) {
                       mySeatNumber = i;
                     }
-                  }
-
-                  if (roomInfo == null) {
-                    roomInfo = '';
-                    var villagerCount = room.template.roles.whereType<Villager>().length;
-                    var wolfCount = room.template.roles.where((e) => e.runtimeType == Wolf).length;
-
-                    roomInfo += '村民x$villagerCount, ';
-                    roomInfo += '普狼x$wolfCount, ';
-                    for (var i in room.template.roles) {
-                      if (i.runtimeType != Wolf && i is Villager == false) roomInfo += i.roleName + ', ';
-                    }
-
-                    //remove the last comma.
-                    roomInfo = roomInfo.substring(0, roomInfo.length - 2);
                   }
 
                   if (myUid == room.hostUid) {
@@ -221,7 +205,7 @@ class _RoomPageState extends State<RoomPage> {
                           padding: EdgeInsets.all(12),
                           child: Wrap(
                             children: <Widget>[
-                              Text("房间信息：$roomInfo"),
+                              Text("房间信息：${room.roomInfo}"),
                             ],
                           )),
                       Container(
