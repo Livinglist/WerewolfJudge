@@ -113,7 +113,7 @@ class Room {
     var guardedByGuard = actions[Guard];
     var moderatedByModerator = actions[Moderator];
     var nightWalker = actions[Celebrity];
-    var blackTraderTarget = actions[Player.roleTypeToIndex(BlackTrader)];
+    var blackTraderTarget = actions[BlackTrader];
     var blackTraderIndex =
         actions.containsKey(BlackTrader) ? players.values.singleWhere((element) => element.role is BlackTrader, orElse: () => null).seatNumber : null;
 
@@ -137,6 +137,8 @@ class Room {
     print("sleptWith: $sleptWith");
     print("firstExchanged: $firstExchanged");
     print("secondExchanged: $secondExchanged");
+    print("blackTraderTarget: $blackTraderTarget");
+    print("blackTraderIndex: $blackTraderIndex");
 
     //奶死
     if (savedByWitch != null && savedByWitch == guardedByGuard) {

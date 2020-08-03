@@ -66,6 +66,8 @@ flutter:
     - assets/audio_end/wolf_king.m4a
     - assets/audio_end/wolf_queen.m4a
     - assets/audio_end/wolf_robot.m4a
+    - assets/audio_end/wolf_brother.m4a
+    - assets/audio_end/black_trader.m4a
     - assets/audio/celebrity.m4a
     - assets/audio/gargoyle.m4a
     - assets/audio/guard.m4a
@@ -82,6 +84,9 @@ flutter:
     - assets/audio/wolf_king.m4a
     - assets/audio/wolf_queen.m4a
     - assets/audio/wolf_robot.m4a
+    - assets/audio/black_trader.m4a
+    - assets/audio/wolf_brother.m4a
+    - assets/audio/lucky_son.m4a
     - assets/images/blood_moon.png
     - assets/images/celebrity.png
     - assets/images/cupid.png

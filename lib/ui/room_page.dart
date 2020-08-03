@@ -112,15 +112,17 @@ class _RoomPageState extends State<RoomPage> {
                   if (room.roomStatus == RoomStatus.ongoing) {
                     if (room.currentActionRole == null) {
                       if (room.template.rolesType.contains(BlackTrader)) {
-                        firstNightEnded = false;
+                        //firstNightEnded = false;
                         imActioner = false;
                         showWolves = false;
 
-                        if (imHost) {
+                        if (imHost && firstNightEnded == false) {
                           audioPlayer.play(JudgeAudioProvider.instance.night);
 
                           Timer(Duration(seconds: 6), () {
-                            firstNightEnded = true;
+                            setState(() {
+                              firstNightEnded = true;
+                            });
                           });
                         }
                       } else {
