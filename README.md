@@ -1,16 +1,12 @@
-# werewolfjudge
+# 萌狼（WerewolfJudge）
 
-A new Flutter application.
+萌狼是一个使用Flutter开发的跨平台狼人杀发牌及法官主持工具，使用Google Firebase作为后端。该应用程序仅支持主持第一夜的法官，一是因为第一天无人出局的情况及其罕见，二是出于时间和代码体积以及维护成本的考虑。但介于存在第一天平票平安夜的可能性，需要对一些已经支持的模板加以改进以支持第二夜法官。
 
-## Getting Started
+## 支持的模版
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- 狼美人守卫
+- 黑商白痴
+- 血月猎魔
+- 机械狼通灵师
+- 石像鬼守墓人
+- 魔术师狼王
