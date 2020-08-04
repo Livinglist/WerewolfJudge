@@ -1,6 +1,6 @@
-# werewolfjudge
+# 萌狼（WerewolfJudge）
 
-A new Flutter application.
+萌狼是一个使用Flutter开发的跨平台狼人杀发牌及法官主持工具，使用Google Firebase作为后端。
 
 ## Getting Started
 
