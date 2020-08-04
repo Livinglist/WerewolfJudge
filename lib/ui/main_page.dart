@@ -427,26 +427,38 @@ class _MainPageState extends State<MainPage> {
                   child: Text('Apple', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
                     Navigator.pop(context, SignInMethod.apple);
-                    FirebaseAuthProvider.instance.signInApple();
                   },
                 ),
                 CupertinoActionSheetAction(
                   child: Text('Gmail', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
                     Navigator.pop(context, SignInMethod.google);
-                    FirebaseAuthProvider.instance.signInGoogle();
                   },
                 ),
                 CupertinoActionSheetAction(
                   child: Text('Phone Number', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
-                    Navigator.pop(context);
-
-                    takePhoneNumber();
+                    Navigator.pop(context, SignInMethod.phoneNumber);
                   },
                 ),
               ],
-            )).then((value) => value ?? null);
+            )).then((value) {
+      if (value != null) {
+        switch (value) {
+          case SignInMethod.apple:
+            FirebaseAuthProvider.instance.signInApple();
+            break;
+          case SignInMethod.google:
+            FirebaseAuthProvider.instance.signInGoogle();
+            break;
+          case SignInMethod.phoneNumber:
+            takePhoneNumber();
+            break;
+          default:
+            throw Exception();
+        }
+      }
+    });
   }
 
   void showLogoutBottomSheet() {
