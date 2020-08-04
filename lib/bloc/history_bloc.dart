@@ -6,9 +6,9 @@ import 'package:werewolfjudge/model/room.dart';
 export 'package:werewolfjudge/model/room.dart';
 
 class RoomHistoryBloc {
-  static final instance = RoomHistoryBloc._();
+  //static final instance = RoomHistoryBloc._();
 
-  RoomHistoryBloc._() {
+  RoomHistoryBloc() {
     if (_rooms == null) {
       _rooms = SharedPreferencesProvider.instance.getAllRoomHistory();
       if (!_roomsFetcher.isClosed) _roomsFetcher.sink.add(_rooms);
@@ -22,11 +22,13 @@ class RoomHistoryBloc {
   static List<Room> _rooms;
 
   void addRoom(Room room) {
-    _rooms.add(room);
+    if (_rooms.isEmpty || _rooms.last.roomNumber != room.roomNumber) {
+      _rooms.add(room);
 
-    _roomsFetcher.sink.add(_rooms);
+      _roomsFetcher.sink.add(_rooms);
 
-    SharedPreferencesProvider.instance.update(_rooms);
+      SharedPreferencesProvider.instance.update(_rooms);
+    }
   }
 
   void deleteRoom(Room room) {
@@ -49,3 +51,5 @@ class RoomHistoryBloc {
     _roomsFetcher.close();
   }
 }
+
+final roomHistoryBloc = RoomHistoryBloc();

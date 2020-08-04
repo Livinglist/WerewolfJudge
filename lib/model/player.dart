@@ -9,6 +9,7 @@ const String seatNumberKey = 'seatNumber';
 const String statusKey = 'status';
 const String skillStatusKey = 'skillStatus';
 const String roleKey = 'role';
+const String displayNameKey = 'displayName';
 
 class Player {
   final String uid;
@@ -28,6 +29,10 @@ class Player {
   SkillStatus _skillStatus;
   SkillStatus get skillStatus => _skillStatus;
   set skillStatus(status) => _skillStatus;
+
+  String _displayName;
+  String get displayName => _displayName;
+  set displayName(name) => _displayName;
 
   Player({this.uid, int seatNumber, Role role}) {
     _role = role;

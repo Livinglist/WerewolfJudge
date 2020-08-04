@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:werewolfjudge/model/room.dart';
 import 'package:werewolfjudge/model/template.dart';
+import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
 
 import 'firebase_auth_provider.dart';
 
@@ -64,6 +64,8 @@ class FirestoreProvider {
 
     currentRoomNumber = roomNum;
 
+    SharedPreferencesProvider.instance.setLastRoom(roomNum);
+
     print("The room number in newRoom() is $roomNum");
 
     return roomNum;
@@ -74,6 +76,8 @@ class FirestoreProvider {
     return Firestore.instance.collection(rooms).document(roomNum).get().then((value) {
       if (value.exists == false) return false;
       if (DateTime.fromMillisecondsSinceEpoch(value.data[timestamp]).toLocal().difference(DateTime.now()).inHours >= 2) return false;
+
+      SharedPreferencesProvider.instance.setLastRoom(roomNum);
 
       return true;
     });

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +7,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
 import 'package:werewolfjudge/resource/firestore_provider.dart';
+import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
 import 'package:werewolfjudge/ui/history_page.dart';
 import 'package:werewolfjudge/ui/room_page.dart';
+import 'package:werewolfjudge/ui/settings_page.dart';
 import 'package:werewolfjudge/util/phone_number_formatter.dart';
 
 import 'code_verification_page.dart';
@@ -22,6 +23,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  final scaffoldKey = GlobalKey<ScaffoldState>();
   String userName;
 
   @override
@@ -32,6 +34,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       appBar: AppBar(
           title: RichText(
               text: TextSpan(style: TextStyle(color: Colors.black87, fontSize: 18), children: [
@@ -42,188 +45,92 @@ class _MainPageState extends State<MainPage> {
       body: StreamBuilder(
         stream: FirebaseAuth.instance.onAuthStateChanged,
         builder: (_, AsyncSnapshot<FirebaseUser> snapshot) {
-          if (snapshot.hasData) {
-            var user = snapshot.data;
-            userName = user.displayName;
+          var user = snapshot.data;
+          String userName;
+          if (user != null) userName = user.displayName ?? user.uid;
 
-            return Column(children: <Widget>[
-              Padding(
-                padding: EdgeInsets.all(12),
-                child: Material(
-                    color: Colors.orangeAccent,
-                    elevation: 8,
+          return Column(children: <Widget>[
+            Padding(
+              padding: EdgeInsets.all(12),
+              child: Material(
+                  color: Colors.orange,
+                  elevation: 8,
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  child: InkWell(
+                    onTap: user == null ? showLoginBottomSheet : showLogoutBottomSheet,
                     borderRadius: BorderRadius.all(Radius.circular(16)),
-                    child: InkWell(
+                    splashColor: Colors.orangeAccent,
+                    child: Container(
+                      width: double.infinity,
+                      child: Padding(
+                          padding: EdgeInsets.all(12),
+                          child: Row(
+                            children: <Widget>[
+                              Icon(FontAwesomeIcons.userCircle),
+                              SizedBox(
+                                width: 12,
+                              ),
+                              Text(user == null ? "登陆" : userName),
+                            ],
+                          )),
+                      decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
+                    ),
+                  )),
+            ),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                physics: NeverScrollableScrollPhysics(),
+                children: <Widget>[
+                  MainPageTile(
+                      title: '进入房间',
+                      iconTitle: 'person-booth',
                       onTap: () {
-                        if (Platform.isIOS || true) {
-                          showCupertinoModalPopup(
-                              context: context,
-                              builder: (BuildContext context) => CupertinoActionSheet(
-                                    cancelButton: CupertinoActionSheetAction(
-                                      isDefaultAction: true,
-                                      child: Text('Cancel'),
-                                      onPressed: () {
-                                        Navigator.pop(context, null);
-                                      },
-                                    ),
-                                    actions: <Widget>[
-                                      CupertinoActionSheetAction(
-                                        child: Text('编辑名称', style: TextStyle(color: Colors.blue)),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          changeNameDialog(userName ?? '');
-                                        },
-                                      ),
-                                      CupertinoActionSheetAction(
-                                        isDefaultAction: true,
-                                        child: Text('登出'),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          FirebaseAuthProvider.instance.signOut();
-                                        },
-                                      ),
-                                    ],
-                                  )).then((value) => value ?? null);
-                        } else {}
-                      },
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                      child: Container(
-                        width: double.infinity,
-                        child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Row(
-                              children: <Widget>[
-                                Icon(FontAwesomeIcons.signInAlt),
-                                SizedBox(
-                                  width: 12,
-                                ),
-                                Text(userName ?? user.uid),
-                              ],
-                            )),
-                        decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
-                      ),
-                    )),
-              ),
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  physics: NeverScrollableScrollPhysics(),
-                  children: <Widget>[
-                    MainPageTile(
-                        title: '进入房间',
-                        onTap: () {
+                        if (user == null) {
+                          scaffoldKey.currentState.hideCurrentSnackBar();
+                          scaffoldKey.currentState.showSnackBar(SnackBar(
+                            content: Text("请先登陆"),
+                            action: SnackBarAction(label: '登陆', onPressed: showLoginBottomSheet),
+                          ));
+                        } else
                           showEnterRoomDialog();
-                        }),
-                    MainPageTile(
-                        title: '创建房间',
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
-                        }),
-                    MainPageTile(
-                        title: '返回上局',
-                        onTap: () {
-                          var lastRoomNumber = FirestoreProvider.instance.currentRoomNumber;
-                          FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
-                            if (isValid) {
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: lastRoomNumber)));
-                            }
-                          });
-                        }),
-                    MainPageTile(
-                        title: '历史记录',
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryPage()));
-                        }),
-                  ],
-                ),
-              ),
-            ]);
-          }
-
-          return Column(
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.all(12),
-                child: Material(
-                    color: Colors.orangeAccent,
-                    elevation: 8,
-                    borderRadius: BorderRadius.all(Radius.circular(16)),
-                    child: InkWell(
+                      }),
+                  MainPageTile(
+                      title: '创建房间',
+                      iconTitle: 'concierge-bell',
                       onTap: () {
-                        if (Platform.isIOS || true) {
-                          showCupertinoModalPopup<SignInMethod>(
-                              context: context,
-                              builder: (BuildContext context) => CupertinoActionSheet(
-                                    cancelButton: CupertinoActionSheetAction(
-                                      isDefaultAction: true,
-                                      child: Text('Cancel'),
-                                      onPressed: () {
-                                        Navigator.pop(context, null);
-                                      },
-                                    ),
-                                    actions: <Widget>[
-                                      CupertinoActionSheetAction(
-                                        child: Text('Apple', style: TextStyle(color: Colors.blue)),
-                                        onPressed: () {
-                                          Navigator.pop(context, SignInMethod.apple);
-                                          FirebaseAuthProvider.instance.signInApple();
-                                        },
-                                      ),
-                                      CupertinoActionSheetAction(
-                                        child: Text('Gmail', style: TextStyle(color: Colors.blue)),
-                                        onPressed: () {
-                                          Navigator.pop(context, SignInMethod.google);
-                                          FirebaseAuthProvider.instance.signInGoogle();
-                                        },
-                                      ),
-                                      CupertinoActionSheetAction(
-                                        child: Text('Phone Number', style: TextStyle(color: Colors.blue)),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-
-                                          takePhoneNumber();
-                                        },
-                                      ),
-                                    ],
-                                  )).then((value) => value ?? null);
-                        } else {}
-                      },
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                      child: Container(
-                        width: double.infinity,
-                        child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Row(
-                              children: <Widget>[
-                                Icon(FontAwesomeIcons.signInAlt),
-                                SizedBox(
-                                  width: 12,
-                                ),
-                                Text('登陆'),
-                              ],
-                            )),
-                        decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
-                      ),
-                    )),
+                        if (user == null) {
+                          scaffoldKey.currentState.hideCurrentSnackBar();
+                          scaffoldKey.currentState.showSnackBar(SnackBar(
+                            content: Text("请先登陆"),
+                            action: SnackBarAction(label: '登陆', onPressed: showLoginBottomSheet),
+                          ));
+                        } else
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
+                      }),
+                  MainPageTile(
+                      title: '返回上局',
+                      iconTitle: 'arrow-alt-circle-left',
+                      onTap: () {
+                        var lastRoomNumber = getLastRoomNumber();
+                        FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
+                          if (isValid) {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: lastRoomNumber)));
+                          }
+                        });
+                      }),
+                  MainPageTile(
+                      title: '设置',
+                      iconTitle: 'sliders-v-square',
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage()));
+                      }),
+                ],
               ),
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  physics: NeverScrollableScrollPhysics(),
-                  children: <Widget>[
-                    MainPageTile(title: '进入房间', onTap: () => showLoginRequestDialog()),
-                    MainPageTile(title: '创建房间', onTap: () => showLoginRequestDialog()),
-                    MainPageTile(title: '返回上局', onTap: () {}),
-                    MainPageTile(title: '历史记录', onTap: () {}),
-                  ],
-                ),
-              ),
-            ],
-          );
+            ),
+          ]);
         },
       ),
     );
@@ -502,5 +409,78 @@ class _MainPageState extends State<MainPage> {
         return alert;
       },
     );
+  }
+
+  void showLoginBottomSheet() {
+    showCupertinoModalPopup<SignInMethod>(
+        context: context,
+        builder: (BuildContext context) => CupertinoActionSheet(
+              cancelButton: CupertinoActionSheetAction(
+                isDefaultAction: true,
+                child: Text('Cancel'),
+                onPressed: () {
+                  Navigator.pop(context, null);
+                },
+              ),
+              actions: <Widget>[
+                CupertinoActionSheetAction(
+                  child: Text('Apple', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    Navigator.pop(context, SignInMethod.apple);
+                    FirebaseAuthProvider.instance.signInApple();
+                  },
+                ),
+                CupertinoActionSheetAction(
+                  child: Text('Gmail', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    Navigator.pop(context, SignInMethod.google);
+                    FirebaseAuthProvider.instance.signInGoogle();
+                  },
+                ),
+                CupertinoActionSheetAction(
+                  child: Text('Phone Number', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    Navigator.pop(context);
+
+                    takePhoneNumber();
+                  },
+                ),
+              ],
+            )).then((value) => value ?? null);
+  }
+
+  void showLogoutBottomSheet() {
+    showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) => CupertinoActionSheet(
+              cancelButton: CupertinoActionSheetAction(
+                isDefaultAction: true,
+                child: Text('Cancel'),
+                onPressed: () {
+                  Navigator.pop(context, null);
+                },
+              ),
+              actions: <Widget>[
+                CupertinoActionSheetAction(
+                  child: Text('编辑名称', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    changeNameDialog(userName ?? '');
+                  },
+                ),
+                CupertinoActionSheetAction(
+                  isDefaultAction: true,
+                  child: Text('登出'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    FirebaseAuthProvider.instance.signOut();
+                  },
+                ),
+              ],
+            )).then((value) => value ?? null);
+  }
+
+  String getLastRoomNumber() {
+    return SharedPreferencesProvider.instance.getLastRoom();
   }
 }

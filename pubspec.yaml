@@ -31,6 +31,7 @@ dependencies:
   pin_code_fields: 4.0.0
   wakelock: 0.1.4+2
   rxdart: 0.24.1
+  url_launcher: 5.5.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -69,6 +70,7 @@ flutter:
     - assets/audio_end/wolf_robot.m4a
     - assets/audio_end/wolf_brother.m4a
     - assets/audio_end/black_trader.m4a
+    - assets/audio_end/slacker.m4a
     - assets/audio/celebrity.m4a
     - assets/audio/gargoyle.m4a
     - assets/audio/guard.m4a
@@ -88,6 +90,7 @@ flutter:
     - assets/audio/black_trader.m4a
     - assets/audio/wolf_brother.m4a
     - assets/audio/lucky_son.m4a
+    - assets/audio/slacker.m4a
     - assets/images/blood_moon.png
     - assets/images/celebrity.png
     - assets/images/cupid.png
@@ -113,11 +116,18 @@ flutter:
     - assets/images/wolf_king.png
     - assets/images/wolf_queen.png
     - assets/images/black_trader.png
+    - assets/app_icon.png
 
   fonts:
     - family: Brands
       fonts:
         - asset: assets/fonts/brands.otf
+    - family: Duo
+      fonts:
+        - asset: assets/fonts/duo.otf
+    - family: Regular
+      fonts:
+        - asset: assets/fonts/regular.otf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

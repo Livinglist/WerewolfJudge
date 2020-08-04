@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:werewolfjudge/model/psychic.dart';
 import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
 import 'package:werewolfjudge/resource/firestore_provider.dart';
@@ -84,7 +86,13 @@ class Room {
 
   bool get hunterStatus {
     var killedByWitch = actions[Witch];
+    var linkedByWolfQueen = actions[WolfQueen];
+    var nightmared = actions[Nightmare];
+
     if (killedByWitch != null && killedByWitch < 0 && players[(killedByWitch + 1).abs()].role is Hunter) return false;
+    if (linkedByWolfQueen != null && players[linkedByWolfQueen].role is Hunter) return false;
+    if (nightmared != null && players[nightmared].role is Hunter) return false;
+
     return true;
   }
 
@@ -135,7 +143,7 @@ class Room {
   String get lastNightInfo {
     var killedByWolf = actions[Wolf];
     var killedByWitch = (actions[Witch] ?? 1) < 0 ? -1 * actions[Witch] - 1 : null;
-    var savedByWitch = (actions[Witch] ?? -1) > 0 ? actions[Witch] : null;
+    var savedByWitch = (actions[Witch] ?? -1) >= 0 ? actions[Witch] : null;
     var queenIndex =
         actions.containsKey(WolfQueen) ? players.values.singleWhere((element) => element.role is WolfQueen, orElse: () => null).seatNumber : null;
     var sleptWith = actions[WolfQueen];
@@ -145,6 +153,7 @@ class Room {
     var blackTraderTarget = actions[BlackTrader];
     var blackTraderIndex =
         actions.containsKey(BlackTrader) ? players.values.singleWhere((element) => element.role is BlackTrader, orElse: () => null).seatNumber : null;
+    var blackTraderKilledByHiddenWolf = false;
 
     //var killedByWitcher = actions[Witcher];
     int firstExchanged, secondExchanged;
@@ -213,6 +222,7 @@ class Room {
 
     if (blackTraderTarget != null && blackTraderTarget == -1) {
       deaths.add(blackTraderIndex);
+      blackTraderKilledByHiddenWolf = true;
     }
 
     if (deaths.isEmpty) {
@@ -220,7 +230,8 @@ class Room {
     }
 
     String info = "昨天晚上";
-    for (var i in deaths) {
+
+    for (var i in deaths.toList()..sort()) {
       info += "${i + 1}号, ";
     }
 
@@ -235,6 +246,10 @@ class Room {
         info += "\n无人被禁票";
       else
         info += "\n${moderatedByModerator + 1}号被禁票";
+    }
+
+    if (blackTraderKilledByHiddenWolf) {
+      info += "\n黑查杀，隐狼变普狼";
     }
 
     return info;
@@ -259,15 +274,15 @@ class Room {
   Room.fromMap(Map<String, dynamic> map) {
     this.timestamp = map[timestampKey];
     this.roomNumber = map[roomNumberKey];
-    this.actions = (map[actionsKey] as Map<int, int>).map((k, v) => MapEntry<Type, int>(Player.indexToRoleType(k), v));
-    this.players = (map[actionsKey] as Map<int, Map>).map((k, v) => MapEntry<int, Player>(k, Player.fromMap(v)));
+    this.actions = (jsonDecode(map[actionsKey]) as Map).map((k, v) => MapEntry<Type, int>(Player.indexToRoleType(int.parse(k)), v));
+    this.players = (jsonDecode(map[actionsKey]) as Map).map((k, v) => MapEntry<int, Player>(int.parse(k), Player.fromMap(jsonDecode(v))));
   }
 
   Map toMap() => {
         timestampKey: this.timestamp,
-        actionsKey: this.actions.map((key, value) => MapEntry<int, int>(Player.roleTypeToIndex(key), value)),
-        playersKey: this.players.map((key, value) => MapEntry<int, Map>(key, value.toMap())),
-        roomNumberKey: this.roomNumber
+        roomNumberKey: this.roomNumber,
+        actionsKey: jsonEncode(this.actions.map((key, value) => MapEntry<int, int>(Player.roleTypeToIndex(key), value))),
+        playersKey: jsonEncode(this.players.map((key, value) => MapEntry<int, String>(key, jsonEncode(value.toMap())))),
       };
 
   void startGame() {
@@ -276,7 +291,7 @@ class Room {
 
   ///Take the seat number of target and return message if needed.
   String action(int target, {bool usePoison = false}) {
-    print("${players[target]} is ${players[target].role} ${players[target] is HiddenWolf}");
+    print("${players[target]} is ${players[target]?.role ?? null} ${players[target] is HiddenWolf}");
     if (currentActionRole is Seer) {
       if (actions.values.contains(Magician) && actions[Magician] != -1) {
         int first = actions[Magician] % 100;

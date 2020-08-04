@@ -435,7 +435,8 @@ class _ConfigPageState extends State<ConfigPage> {
               ),
             ),
             Divider(),
-            Padding(padding: EdgeInsets.only(left: 12), child: Text("该应用可以充当第一夜法官的板子有：狼美守卫，石像鬼守墓人，血月猎魔，魔术师狼王, 机械狼通灵师。")),
+            Padding(padding: EdgeInsets.only(left: 12), child: Text("该应用可以充当第一夜法官的板子有：狼美守卫, 黑商狼兄, 石像鬼守墓人, 血月猎魔, 魔术师狼王, 机械狼通灵师。")),
+            SizedBox(height: 36,),
           ],
         ));
   }

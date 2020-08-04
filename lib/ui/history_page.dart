@@ -17,14 +17,18 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(),
+        appBar: AppBar(
+          title: Text("历史记录"),
+        ),
         body: StreamBuilder(
-          stream: RoomHistoryBloc.instance.rooms,
+          stream: roomHistoryBloc.rooms,
           builder: (_, AsyncSnapshot<List<Room>> snapshot) {
             if (snapshot.hasData) {
               var rooms = snapshot.data;
-              return Column(
-                children: <Widget>[...buildChildren(rooms)],
+              return SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[...buildChildren(rooms)],
+                ),
               );
             }
 
@@ -37,7 +41,7 @@ class _HistoryPageState extends State<HistoryPage> {
 
   List<Widget> buildChildren(List<Room> rooms) {
     return rooms.map((room) {
-      var gridHeight = ((MediaQuery.of(context).size.width / 4) + 12) * ((room.template.roles.length / 4).ceil());
+      var gridHeight = ((MediaQuery.of(context).size.width / 4) + 12) * ((room.players.length / 4).ceil());
 
       return Container(
         height: 300,
@@ -47,7 +51,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 padding: EdgeInsets.all(12),
                 child: Wrap(
                   children: <Widget>[
-                    Text("房间信息：${room.roomInfo}"),
+                    Text("房间信息：${room.roomNumber}"),
                   ],
                 )),
             Container(
@@ -67,7 +71,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       childAspectRatio: 1.0,
                       physics: NeverScrollableScrollPhysics(),
                       children: <Widget>[
-                        for (var i in Iterable.generate(room.template.roles.length))
+                        for (var i in Iterable.generate(room.players.length))
                           Padding(
                             padding: EdgeInsets.all(12),
                             child: Material(
@@ -83,7 +87,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                             left: 0,
                                             right: 0,
                                             child: FutureBuilder(
-                                              future: FirestoreProvider.instance.fetchPlayerDisplayName(room.players[i].uid),
+                                              future: FirestoreProvider.instance.fetchPlayerDisplayName(room.players[i].uid) ?? "",
                                               builder: (_, AsyncSnapshot<String> userNameSnapshot) {
                                                 if (userNameSnapshot.hasData) {
                                                   return Text(
@@ -111,7 +115,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       childAspectRatio: 1.0,
                       physics: NeverScrollableScrollPhysics(),
                       children: <Widget>[
-                        for (var i in Iterable.generate(room.template.roles.length))
+                        for (var i in Iterable.generate(room.players.length))
                           Padding(
                             padding: EdgeInsets.all(12),
                             child: Material(
