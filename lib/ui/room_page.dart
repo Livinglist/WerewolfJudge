@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:audioplayers/audio_cache.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:transparent_image/transparent_image.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:werewolfjudge/bloc/history_bloc.dart';
 import 'package:werewolfjudge/model/actionable_mixin.dart';
@@ -299,6 +302,40 @@ class _RoomPageState extends State<RoomPage> {
                                             borderRadius: BorderRadius.all(Radius.circular(16)),
                                             child: Stack(
                                               children: <Widget>[
+                                                Positioned.fill(
+                                                  child: FutureBuilder(
+                                                    future: FirestoreProvider.instance.getAvatar(seatToPlayerMap[i].uid),
+                                                    builder: (_, AsyncSnapshot<String> urlSnapshot) {
+                                                      if (urlSnapshot.hasData && urlSnapshot != null) {
+                                                        var url = urlSnapshot.data;
+                                                        return Stack(
+                                                          children: <Widget>[
+                                                            Positioned.fill(
+                                                                child: ClipRRect(
+                                                              borderRadius: BorderRadius.circular(13),
+                                                              child: FadeInImage.memoryNetwork(
+                                                                placeholder: kTransparentImage,
+                                                                image: url,
+                                                                fit: BoxFit.cover,
+                                                                width: 26,
+                                                                height: 26,
+                                                              ),
+                                                            )),
+                                                            BackdropFilter(
+                                                                filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                                                                child: Container(
+                                                                    width: double.infinity,
+                                                                    height: double.infinity,
+                                                                    decoration: BoxDecoration(color: Colors.grey.shade200.withOpacity(0.5)),
+                                                                    child: Container())),
+                                                          ],
+                                                        );
+                                                      }
+
+                                                      return Container();
+                                                    },
+                                                  ),
+                                                ),
                                                 Container(
                                                   child: Padding(
                                                     padding: EdgeInsets.only(left: 12, top: 12),

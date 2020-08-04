@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:werewolfjudge/model/room.dart';
 import 'package:werewolfjudge/model/template.dart';
 import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
@@ -228,5 +229,26 @@ class FirestoreProvider {
       docRef.setData({currentActionerIndexKey: currentActionerIndex}, merge: true);
     else
       docRef.setData({luckySonVerificationsCountKey: FieldValue.increment(1)}, merge: true);
+  }
+
+  Future<String> getAvatar(String uid) async {
+    var ref = FirebaseStorage.instance.ref().child('profile_pics/$uid');
+
+    return ref.getDownloadURL().then((value) => value, onError: (_) => null);
+  }
+
+  StorageUploadTask uploadAvatar(String uid, List<int> imageBytes) {
+    final StorageReference storageReference = FirebaseStorage().ref().child('profile_pics/$uid');
+
+    final StorageUploadTask uploadTask = storageReference.putData(imageBytes);
+
+    return uploadTask;
+
+//    final StreamSubscription<StorageTaskEvent> streamSubscription = uploadTask.events.listen((event) {
+//      print('EVENT ${event.type}');
+//    });
+//
+//    await uploadTask.onComplete;
+//    streamSubscription.cancel();
   }
 }

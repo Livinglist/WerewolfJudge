@@ -67,5 +67,25 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>This app needs access to Apple Music.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>This app needs access to calendars.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>萌狼需要您的相册权限以选择头像</string>
+	<key>NSContactsUsageDescription</key>
+	<string>This app needs access to contacts.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location when open.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Manji requires access to your microphone</string>
+	<key>NSMotionUsageDescription</key>
+	<string>This app needs access to motion.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>萌狼需要您的相册权限以选择头像</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app needs access to speech.</string>
 </dict>
 </plist>

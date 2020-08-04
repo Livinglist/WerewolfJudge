@@ -22,7 +22,6 @@ dependencies:
   audioplayers: 0.15.1
   firebase_core: ^0.4.0+9
   apple_sign_in: 0.1.0
-  fluwx: 2.2.0
   font_awesome_flutter: 8.8.1
   firebase_auth: 0.16.1
   google_sign_in: 4.5.1
@@ -32,7 +31,12 @@ dependencies:
   wakelock: 0.1.4+2
   rxdart: 0.24.1
   url_launcher: 5.5.0
-
+  flutter_signin_button: 1.0.0
+  image_cropper: 1.2.3
+  firebase_storage: 3.1.6
+  path_provider: 1.6.11
+  image_picker: 0.6.7+4
+  transparent_image: 1.0.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2

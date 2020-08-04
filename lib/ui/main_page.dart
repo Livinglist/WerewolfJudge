@@ -1,10 +1,17 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:transparent_image/transparent_image.dart';
 import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
 import 'package:werewolfjudge/resource/firestore_provider.dart';
 import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
@@ -47,7 +54,9 @@ class _MainPageState extends State<MainPage> {
         builder: (_, AsyncSnapshot<FirebaseUser> snapshot) {
           var user = snapshot.data;
           String userName;
-          if (user != null) userName = user.displayName ?? user.uid;
+          if (user != null) {
+            userName = user.displayName ?? user.uid;
+          }
 
           return Column(children: <Widget>[
             Padding(
@@ -57,7 +66,7 @@ class _MainPageState extends State<MainPage> {
                   elevation: 8,
                   borderRadius: BorderRadius.all(Radius.circular(16)),
                   child: InkWell(
-                    onTap: user == null ? showLoginBottomSheet : showLogoutBottomSheet,
+                    onTap: user == null ? showLoginOptionDialog : showLogoutBottomSheet,
                     borderRadius: BorderRadius.all(Radius.circular(16)),
                     splashColor: Colors.orangeAccent,
                     child: Container(
@@ -66,7 +75,28 @@ class _MainPageState extends State<MainPage> {
                           padding: EdgeInsets.all(12),
                           child: Row(
                             children: <Widget>[
-                              Icon(FontAwesomeIcons.userCircle),
+                              if (user != null)
+                                FutureBuilder(
+                                  future: FirestoreProvider.instance.getAvatar(user.uid),
+                                  builder: (_, AsyncSnapshot<String> urlSnapshot) {
+                                    if (urlSnapshot.hasData && urlSnapshot != null) {
+                                      var url = urlSnapshot.data;
+                                      return ClipRRect(
+                                        borderRadius: BorderRadius.circular(13),
+                                        child: FadeInImage.memoryNetwork(
+                                          placeholder: kTransparentImage,
+                                          image: url,
+                                          fit: BoxFit.cover,
+                                          width: 26,
+                                          height: 26,
+                                        ),
+                                      );
+                                    }
+
+                                    return Icon(FontAwesomeIcons.userCircle);
+                                  },
+                                ),
+                              if (user == null) Icon(FontAwesomeIcons.userCircle),
                               SizedBox(
                                 width: 12,
                               ),
@@ -92,7 +122,7 @@ class _MainPageState extends State<MainPage> {
                           scaffoldKey.currentState.hideCurrentSnackBar();
                           scaffoldKey.currentState.showSnackBar(SnackBar(
                             content: Text("请先登陆"),
-                            action: SnackBarAction(label: '登陆', onPressed: showLoginBottomSheet),
+                            action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
                           ));
                         } else
                           showEnterRoomDialog();
@@ -105,7 +135,7 @@ class _MainPageState extends State<MainPage> {
                           scaffoldKey.currentState.hideCurrentSnackBar();
                           scaffoldKey.currentState.showSnackBar(SnackBar(
                             content: Text("请先登陆"),
-                            action: SnackBarAction(label: '登陆', onPressed: showLoginBottomSheet),
+                            action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
                           ));
                         } else
                           Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
@@ -134,6 +164,90 @@ class _MainPageState extends State<MainPage> {
         },
       ),
     );
+  }
+
+  Future<void> showLoginOptionDialog() async {
+    return showGeneralDialog<SignInMethod>(
+      barrierLabel: "Barrier",
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.8),
+      transitionDuration: Duration(milliseconds: 300),
+      context: context,
+      pageBuilder: (_, __, ___) {
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            height: 240,
+            width: double.infinity,
+            //child: SizedBox.expand(child: FlutterLogo()),
+            margin: EdgeInsets.only(top: 120, left: 12, right: 12, bottom: 0),
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: Column(
+              children: <Widget>[
+                SizedBox(height: 24),
+                Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Transform.scale(
+                      scale: 1.24,
+                      child: SignInButton(Buttons.Apple, onPressed: () {
+                        Navigator.pop(context, SignInMethod.apple);
+                      }),
+                    )),
+                SizedBox(height: 12),
+                Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Transform.scale(
+                      scale: 1.24,
+                      child: SignInButton(Buttons.Google, onPressed: () {
+                        Navigator.pop(context, SignInMethod.google);
+                      }),
+                    )),
+                SizedBox(height: 12),
+                Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Transform.scale(
+                      scale: 1.24,
+                      child: SignInButtonBuilder(
+                        text: 'Sign in with Phone',
+                        icon: Icons.phone_iphone,
+                        onPressed: () {
+                          Navigator.pop(context, SignInMethod.phoneNumber);
+                        },
+                        backgroundColor: Colors.blueGrey[700],
+                      ),
+                    )),
+                SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (_, anim, __, child) {
+        return SlideTransition(
+          position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim),
+          child: child,
+        );
+      },
+    ).then((value) {
+      if (value != null) {
+        switch (value) {
+          case SignInMethod.apple:
+            FirebaseAuthProvider.instance.signInApple();
+            break;
+          case SignInMethod.google:
+            FirebaseAuthProvider.instance.signInGoogle();
+            break;
+          case SignInMethod.phoneNumber:
+            takePhoneNumber();
+            break;
+          default:
+            throw Exception();
+        }
+      }
+    });
   }
 
   Future<void> changeNameDialog(String currentName) async {
@@ -166,7 +280,7 @@ class _MainPageState extends State<MainPage> {
                     child: TextField(
                       controller: textEditingController,
                       maxLengthEnforced: true,
-                      maxLength: 10,
+                      maxLength: 40,
                       maxLines: 1,
                       autofocus: true,
                       textAlign: TextAlign.center,
@@ -481,6 +595,13 @@ class _MainPageState extends State<MainPage> {
                   },
                 ),
                 CupertinoActionSheetAction(
+                  child: Text('编辑头像', style: TextStyle(color: Colors.blue)),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    pickAvatar();
+                  },
+                ),
+                CupertinoActionSheetAction(
                   isDefaultAction: true,
                   child: Text('登出'),
                   onPressed: () {
@@ -494,5 +615,31 @@ class _MainPageState extends State<MainPage> {
 
   String getLastRoomNumber() {
     return SharedPreferencesProvider.instance.getLastRoom();
+  }
+
+  Future pickAvatar() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.getImage(source: ImageSource.gallery, imageQuality: 85);
+
+    File croppedFile = await ImageCropper.cropImage(
+        sourcePath: pickedFile.path,
+        aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
+        aspectRatioPresets: [
+          CropAspectRatioPreset.square,
+        ],
+        androidUiSettings: AndroidUiSettings(
+            toolbarTitle: '裁剪',
+            toolbarColor: Colors.deepOrange,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: false),
+        iosUiSettings: IOSUiSettings(minimumAspectRatio: 1.0, aspectRatioLockEnabled: true));
+
+    if (croppedFile == null) return null;
+
+    var bytes = await croppedFile.readAsBytes();
+    var user = await FirebaseAuthProvider.instance.currentUser;
+
+    return FirestoreProvider.instance.uploadAvatar(user.uid, bytes);
   }
 }
