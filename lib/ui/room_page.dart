@@ -183,7 +183,7 @@ class _RoomPageState extends State<RoomPage> {
                               myRole is WolfRobot == false &&
                               myRole is WolfBrother == false) showWolves = true;
                         } else if (room.currentActionRole is Wolf &&
-                            (myRole is WolfKing || myRole is WolfQueen || myRole is Nightmare || myRole is WolfBrother)) {
+                            (myRole is WolfKing || myRole is WolfQueen || myRole is Nightmare || myRole is WolfBrother || myRole is BloodMoon)) {
                           //showActionMessage((myRole as Wolf) as ActionableMixin);
                           imActioner = true;
                           showWolves = true;

@@ -154,6 +154,9 @@ class Room {
     var blackTraderIndex =
         actions.containsKey(BlackTrader) ? players.values.singleWhere((element) => element.role is BlackTrader, orElse: () => null).seatNumber : null;
     var blackTraderKilledByHiddenWolf = false;
+    var witcherIndex = this.template.rolesType.contains(Witcher)
+        ? players.values.singleWhere((element) => element.role is Witcher, orElse: () => null).seatNumber
+        : null;
 
     //var killedByWitcher = actions[Witcher];
     int firstExchanged, secondExchanged;
@@ -190,7 +193,10 @@ class Room {
 
     //毒死
     if (killedByWitch != null) {
-      deaths.add(killedByWitch);
+      //猎魔人不吃毒
+      if (witcherIndex == null || witcherIndex != killedByWitch) {
+        deaths.add(killedByWitch);
+      }
     }
 
     //如果狼美人死亡，被连的人殉情
@@ -341,7 +347,7 @@ class Room {
         .checkInForLuckySonVerifications(myIndex: myIndex, totalPlayers: players.length, currentActionerIndex: currentActionerIndex + 1);
   }
 
-  void terminate(){
+  void terminate() {
     FirestoreProvider.instance.terminateRoom(this.roomNumber);
   }
 }

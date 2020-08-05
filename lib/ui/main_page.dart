@@ -44,12 +44,13 @@ class _MainPageState extends State<MainPage> {
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
+          centerTitle: true,
           title: RichText(
               text: TextSpan(style: TextStyle(color: Colors.black87, fontSize: 18), children: [
-        TextSpan(text: '狼杀'),
-        TextSpan(text: 'wolf-pack-battalion', style: TextStyle(fontFamily: 'Brands', fontSize: 36)),
-        TextSpan(text: '法官')
-      ]))),
+            TextSpan(text: '狼杀'),
+            TextSpan(text: 'wolf-pack-battalion', style: TextStyle(fontFamily: 'Brands', fontSize: 36)),
+            TextSpan(text: '法官')
+          ]))),
       body: StreamBuilder(
         stream: FirebaseAuth.instance.onAuthStateChanged,
         builder: (_, AsyncSnapshot<FirebaseUser> snapshot) {
