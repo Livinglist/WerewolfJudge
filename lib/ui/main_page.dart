@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -598,7 +599,11 @@ class _MainPageState extends State<MainPage> {
                   child: Text('编辑头像', style: TextStyle(color: Colors.blue)),
                   onPressed: () async {
                     Navigator.pop(context);
-                    pickAvatar();
+                    pickAvatar().then((value) {
+                      value.onComplete.then((value) {
+                        setState(() {});
+                      });
+                    });
                   },
                 ),
                 CupertinoActionSheetAction(
@@ -617,7 +622,7 @@ class _MainPageState extends State<MainPage> {
     return SharedPreferencesProvider.instance.getLastRoom();
   }
 
-  Future pickAvatar() async {
+  Future<StorageUploadTask> pickAvatar() async {
     final picker = ImagePicker();
     final pickedFile = await picker.getImage(source: ImageSource.gallery, imageQuality: 85);
 

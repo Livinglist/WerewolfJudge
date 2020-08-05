@@ -340,4 +340,8 @@ class Room {
     FirestoreProvider.instance
         .checkInForLuckySonVerifications(myIndex: myIndex, totalPlayers: players.length, currentActionerIndex: currentActionerIndex + 1);
   }
+
+  void terminate(){
+    FirestoreProvider.instance.terminateRoom(this.roomNumber);
+  }
 }

@@ -56,286 +56,340 @@ class _RoomPageState extends State<RoomPage> {
   @override
   void dispose() {
     Wakelock.disable();
+    audioPlayer.clearCache();
     super.dispose();
+  }
+
+  Future<bool> onWillPop() async {
+    if (room.roomStatus == RoomStatus.terminated) return true;
+
+    Widget cancelButton = FlatButton(
+      child: Text("取消"),
+      onPressed: () => Navigator.pop(context, false),
+    );
+
+    Widget continueButton = FlatButton(
+      child: Text("确定"),
+      onPressed: () {
+        Navigator.pop(context, true);
+      },
+    );
+
+    AlertDialog alert = AlertDialog(
+      title: Text("离开房间？"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(title: Text('房间${widget.roomNumber}')),
-        body: FutureBuilder(
-          future: FirebaseAuthProvider.instance.currentUser,
-          builder: (_, AsyncSnapshot<FirebaseUser> userSnapshot) {
-            var myUid = userSnapshot.data?.uid ?? '';
+    return WillPopScope(
+        onWillPop: onWillPop,
+        child: Scaffold(
+            appBar: AppBar(title: Text('房间${widget.roomNumber}')),
+            body: FutureBuilder(
+              future: FirebaseAuthProvider.instance.currentUser,
+              builder: (_, AsyncSnapshot<FirebaseUser> userSnapshot) {
+                var myUid = userSnapshot.data?.uid ?? '';
 
-            return StreamBuilder(
-              stream: FirestoreProvider.instance.fetchRoom(widget.roomNumber),
-              builder: (_, AsyncSnapshot<Room> snapshot) {
-                if (snapshot.hasData) {
-                  room = snapshot.data;
-                  gridHeight = gridHeight ?? ((MediaQuery.of(context).size.width / 4) + 12) * ((room.template.roles.length / 4).ceil());
+                return StreamBuilder(
+                  stream: FirestoreProvider.instance.fetchRoom(widget.roomNumber),
+                  builder: (_, AsyncSnapshot<Room> snapshot) {
+                    if (snapshot.hasData) {
+                      room = snapshot.data;
+                      gridHeight = gridHeight ?? ((MediaQuery.of(context).size.width / 4) + 12) * ((room.template.roles.length / 4).ceil());
 
-                  var players = room.players;
+                      var players = room.players;
 
 //                  Map<int, Player> seatToPlayerMap = Map.fromEntries(List.generate(room.template.roles.length, (index) {
 //                    return MapEntry<int, Player>(
 //                        index, players.values.singleWhere((element) => (element?.seatNumber ?? -1) == index, orElse: () => null));
 //                  }));
-                  var seatToPlayerMap = room.players;
+                      var seatToPlayerMap = room.players;
 
-                  for (var i in Iterable.generate(players.length)) {
-                    if (players[i] != null && players[i].uid == myUid) {
-                      mySeatNumber = i;
-                    }
-                  }
-
-                  if (myUid == room.hostUid) {
-                    imHost = true;
-                  } else {
-                    imHost = false;
-                  }
-
-                  if (room.roomStatus != RoomStatus.seating && mySeatNumber != null) {
-                    myRole = room.template.roles[mySeatNumber];
-
-                    debugPrint("天黑");
-                  }
-
-                  if (room.roomStatus == RoomStatus.ongoing) {
-                    if (room.currentActionRole == null) {
-                      firstNightEnded = true;
-                      imActioner = false;
-                      showWolves = false;
-                    } else if (room.currentActionRole is LuckySon) {
-                      imActioner = false;
-
-                      if (hasShownLuckySonDialog == false) {
-                        hasShownLuckySonDialog = true;
-
-                        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                          showLuckySonVerificationDialog();
-                        });
-                      }
-                    } else if (myRole.runtimeType == room.currentActionRole.runtimeType) {
-                      //wolfking.runtimeType does not equal to wolf.runTimeType
-                      imActioner = true;
-
-                      if (hasShown == false) {
-                        hasShown = true;
-
-                        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                          Timer(Duration(seconds: 3), () {
-                            if (room.currentActionerSkillStatus) {
-                              if (myRole is Witch) {
-                                showWitchActionDialog(room.killedIndex);
-                              } else if (myRole is Hunter) {
-                                showHunterStatusDialog(myRole as ActionableMixin);
-                              } else if (myRole is WolfBrother) {
-                                showWolfBrotherActionMessage(myRole as ActionableMixin);
-                              } else {
-                                showActionMessage(myRole as ActionableMixin);
-                              }
-                            } else {
-                              showActionForbiddenDialog();
-                            }
-                          });
-                        });
-                      }
-
-                      if (myRole is Wolf &&
-                          myRole is Nightmare == false &&
-                          myRole is Gargoyle == false &&
-                          myRole is HiddenWolf == false &&
-                          myRole is WolfRobot == false &&
-                          myRole is WolfBrother == false) showWolves = true;
-                    } else if (room.currentActionRole is Wolf &&
-                        (myRole is WolfKing || myRole is WolfQueen || myRole is Nightmare || myRole is WolfBrother)) {
-                      //showActionMessage((myRole as Wolf) as ActionableMixin);
-                      imActioner = true;
-                      showWolves = true;
-                    } else {
-                      imActioner = false;
-                      showWolves = false;
-                    }
-
-                    if (imHost) {
-                      if (firstNightEnded) {
-                        if (room.template.rolesType.contains(BlackTrader)) {
-                          String endAudioPath = JudgeAudioProvider.instance.night;
-                          String audioPath = JudgeAudioProvider.instance.nightEnd;
-
-                          var timelapse = Duration(seconds: 5);
-
-                          audioPlayer.play(endAudioPath);
-
-                          Timer(timelapse, () {
-                            audioPlayer.play(audioPath);
-                          });
-                        } else {
-                          String endAudioPath = JudgeAudioProvider.instance.getEndingAudio(room.lastActionRole);
-                          var timelapse = Duration(seconds: 5);
-                          audioPlayer.play(endAudioPath);
-                          Timer(timelapse, () {
-                            audioPlayer.play(JudgeAudioProvider.instance.nightEnd);
-                          });
+                      for (var i in Iterable.generate(players.length)) {
+                        if (players[i] != null && players[i].uid == myUid) {
+                          mySeatNumber = i;
                         }
+                      }
+
+                      if (myUid == room.hostUid) {
+                        imHost = true;
                       } else {
-                        String endAudioPath = JudgeAudioProvider.instance.getEndingAudio(room.lastActionRole);
-                        String audioPath = JudgeAudioProvider.instance.getBeginningAudio(room.currentActionRole);
+                        imHost = false;
+                      }
 
-                        var timelapse = Duration(seconds: 5);
+                      if (room.roomStatus != RoomStatus.seating && mySeatNumber != null) {
+                        myRole = room.template.roles[mySeatNumber];
 
-                        if (room.template.rolesType.contains(BlackTrader) == false ||
-                            (room.template.rolesType.contains(BlackTrader) && hasPlayedLuckSon == false)) {
-                          if (room.currentActionRole is LuckySon) hasPlayedLuckSon = true;
+                        debugPrint("天黑");
+                      }
 
-                          if (endAudioPath != null) {
-                            audioPlayer.play(endAudioPath);
+                      if (room.roomStatus == RoomStatus.ongoing) {
+                        if (room.currentActionRole == null) {
+                          firstNightEnded = true;
+                          imActioner = false;
+                          showWolves = false;
+                        } else if (room.currentActionRole is LuckySon) {
+                          imActioner = false;
+
+                          if (hasShownLuckySonDialog == false) {
+                            hasShownLuckySonDialog = true;
+
+                            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                              showLuckySonVerificationDialog();
+                            });
+                          }
+                        } else if (myRole.runtimeType == room.currentActionRole.runtimeType) {
+                          //wolfking.runtimeType does not equal to wolf.runTimeType
+                          imActioner = true;
+
+                          if (hasShown == false) {
+                            hasShown = true;
+
+                            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                              Timer(Duration(seconds: 3), () {
+                                if (room.currentActionerSkillStatus) {
+                                  if (myRole is Witch) {
+                                    showWitchActionDialog(room.killedIndex);
+                                  } else if (myRole is Hunter) {
+                                    showHunterStatusDialog(myRole as ActionableMixin);
+                                  } else if (myRole is WolfBrother) {
+                                    showWolfBrotherActionMessage(myRole as ActionableMixin);
+                                  } else {
+                                    showActionMessage(myRole as ActionableMixin);
+                                  }
+                                } else {
+                                  showActionForbiddenDialog();
+                                }
+                              });
+                            });
                           }
 
-                          if (audioPath != null)
-                            Timer(timelapse, () {
-                              audioPlayer.play(audioPath);
-                            });
+                          if (myRole is Wolf &&
+                              myRole is Nightmare == false &&
+                              myRole is Gargoyle == false &&
+                              myRole is HiddenWolf == false &&
+                              myRole is WolfRobot == false &&
+                              myRole is WolfBrother == false) showWolves = true;
+                        } else if (room.currentActionRole is Wolf &&
+                            (myRole is WolfKing || myRole is WolfQueen || myRole is Nightmare || myRole is WolfBrother)) {
+                          //showActionMessage((myRole as Wolf) as ActionableMixin);
+                          imActioner = true;
+                          showWolves = true;
+                        } else {
+                          imActioner = false;
+                          showWolves = false;
                         }
+
+                        print("firstNightEnded: $firstNightEnded");
+
+                        if (imHost && room.roomStatus != RoomStatus.terminated) {
+                          if (firstNightEnded) {
+                            if (room.template.rolesType.contains(BlackTrader)) {
+                              String endAudioPath = JudgeAudioProvider.instance.night;
+                              String audioPath = JudgeAudioProvider.instance.nightEnd;
+
+                              var timelapse = Duration(seconds: 5);
+
+                              audioPlayer.play(endAudioPath);
+
+                              Timer(timelapse, () {
+                                audioPlayer.play(audioPath);
+                                room.terminate();
+                              });
+                            } else {
+                              String endAudioPath = JudgeAudioProvider.instance.getEndingAudio(room.lastActionRole);
+                              var timelapse = Duration(seconds: 5);
+                              audioPlayer.play(endAudioPath);
+                              Timer(timelapse, () {
+                                audioPlayer.play(JudgeAudioProvider.instance.nightEnd);
+                                room.terminate();
+                              });
+                            }
+                          } else {
+                            String endAudioPath = JudgeAudioProvider.instance.getEndingAudio(room.lastActionRole);
+                            String audioPath = JudgeAudioProvider.instance.getBeginningAudio(room.currentActionRole);
+
+                            var timelapse = Duration(seconds: 5);
+
+                            if (room.template.rolesType.contains(BlackTrader) == false ||
+                                (room.template.rolesType.contains(BlackTrader) && hasPlayedLuckSon == false)) {
+                              if (room.currentActionRole is LuckySon) hasPlayedLuckSon = true;
+
+                              if (endAudioPath != null) {
+                                audioPlayer.play(endAudioPath);
+                              }
+
+                              if (audioPath != null)
+                                Timer(timelapse, () {
+                                  audioPlayer.play(audioPath);
+                                });
+                            }
+                          }
+                        }
+                      } else if (room.roomStatus == RoomStatus.terminated) {
+                        firstNightEnded = true;
                       }
-                    }
-                  }
 
-                  String actionMessage;
+                      String actionMessage;
 
-                  if (imActioner) {
-                    if (room.currentActionRole.runtimeType == Wolf) {
-                      actionMessage = Wolf().actionMessage;
-                    } else
-                      actionMessage = (myRole as ActionableMixin).actionMessage;
-                  }
+                      if (imActioner) {
+                        if (room.currentActionRole.runtimeType == Wolf) {
+                          actionMessage = Wolf().actionMessage;
+                        } else
+                          actionMessage = (myRole as ActionableMixin).actionMessage;
+                      }
 
-                  print("currentRole is ${room.currentActionRole}");
-                  print("currentRole.runtimeType is ${room.currentActionRole.runtimeType}");
-                  print("${room.currentActionRole is Wolf}");
-                  print("${room.currentActionRole.runtimeType is Wolf}");
-                  print("myRole is $myRole");
-                  print("myRole.runtimeType is ${myRole.runtimeType}");
+                      print("currentRole is ${room.currentActionRole}");
+                      print("currentRole.runtimeType is ${room.currentActionRole.runtimeType}");
+                      print("${room.currentActionRole is Wolf}");
+                      print("${room.currentActionRole.runtimeType is Wolf}");
+                      print("myRole is $myRole");
+                      print("myRole.runtimeType is ${myRole.runtimeType}");
 
-                  return Column(
-                    children: <Widget>[
-                      Padding(
-                          padding: EdgeInsets.all(12),
-                          child: Wrap(
-                            children: <Widget>[
-                              Text("房间信息：${room.roomInfo}"),
-                            ],
-                          )),
-                      Container(
-                        height: gridHeight,
-                        child: Stack(
-                          children: <Widget>[
-                            Positioned(
-                              top: 20,
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: GridView.count(
-                                shrinkWrap: true,
-                                crossAxisCount: 4,
-                                crossAxisSpacing: 0,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: 1.0,
-                                physics: NeverScrollableScrollPhysics(),
+                      return Column(
+                        children: <Widget>[
+                          Padding(
+                              padding: EdgeInsets.all(12),
+                              child: Wrap(
                                 children: <Widget>[
-                                  for (var i in Iterable.generate(room.template.roles.length))
-                                    Padding(
-                                      padding: EdgeInsets.all(12),
-                                      child: Material(
-                                          color: Colors.transparent,
-                                          borderRadius: BorderRadius.all(Radius.circular(16)),
-                                          elevation: 0,
-                                          child: InkWell(
+                                  Text("房间信息：${room.roomInfo}"),
+                                ],
+                              )),
+                          Container(
+                            height: gridHeight,
+                            child: Stack(
+                              children: <Widget>[
+                                Positioned(
+                                  top: 20,
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: GridView.count(
+                                    shrinkWrap: true,
+                                    crossAxisCount: 4,
+                                    crossAxisSpacing: 0,
+                                    mainAxisSpacing: 12,
+                                    childAspectRatio: 1.0,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    children: <Widget>[
+                                      for (var i in Iterable.generate(room.template.roles.length))
+                                        Padding(
+                                          padding: EdgeInsets.all(12),
+                                          child: Material(
+                                              color: Colors.transparent,
+                                              borderRadius: BorderRadius.all(Radius.circular(16)),
+                                              elevation: 0,
+                                              child: InkWell(
+                                                child: Stack(
+                                                  children: <Widget>[
+                                                    if (seatToPlayerMap[i] != null)
+                                                      Positioned(
+                                                          bottom: 0,
+                                                          left: 0,
+                                                          right: 0,
+                                                          child: FutureBuilder(
+                                                            future: FirestoreProvider.instance.fetchPlayerDisplayName(seatToPlayerMap[i].uid),
+                                                            builder: (_, AsyncSnapshot<String> userNameSnapshot) {
+                                                              if (userNameSnapshot.hasData) {
+                                                                return Text(
+                                                                  userNameSnapshot.data,
+                                                                  textAlign: TextAlign.center,
+                                                                  maxLines: 1,
+                                                                );
+                                                              }
+                                                              return Container();
+                                                            },
+                                                          ))
+                                                  ],
+                                                ),
+                                              )),
+                                        )
+                                    ],
+                                  ),
+                                ),
+                                Align(
+                                  alignment: Alignment.topCenter,
+                                  child: GridView.count(
+                                    shrinkWrap: true,
+                                    crossAxisCount: 4,
+                                    crossAxisSpacing: 0,
+                                    mainAxisSpacing: 12,
+                                    childAspectRatio: 1.0,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    children: <Widget>[
+                                      for (var i in Iterable.generate(room.template.roles.length))
+                                        Padding(
+                                          padding: EdgeInsets.all(12),
+                                          child: Material(
+                                            color: ((showWolves && room.players[i].role is Wolf) || ((anotherIndex ?? -1) == i))
+                                                ? Colors.red
+                                                : Colors.orange,
+                                            borderRadius: BorderRadius.all(Radius.circular(16)),
+                                            elevation: 8,
                                             child: Stack(
                                               children: <Widget>[
                                                 if (seatToPlayerMap[i] != null)
-                                                  Positioned(
-                                                      bottom: 0,
-                                                      left: 0,
-                                                      right: 0,
-                                                      child: FutureBuilder(
-                                                        future: FirestoreProvider.instance.fetchPlayerDisplayName(seatToPlayerMap[i].uid),
-                                                        builder: (_, AsyncSnapshot<String> userNameSnapshot) {
-                                                          if (userNameSnapshot.hasData) {
-                                                            return Text(
-                                                              userNameSnapshot.data,
-                                                              textAlign: TextAlign.center,
-                                                            );
-                                                          }
-                                                          return Container();
-                                                        },
-                                                      ))
-                                              ],
-                                            ),
-                                          )),
-                                    )
-                                ],
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.topCenter,
-                              child: GridView.count(
-                                shrinkWrap: true,
-                                crossAxisCount: 4,
-                                crossAxisSpacing: 0,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: 1.0,
-                                physics: NeverScrollableScrollPhysics(),
-                                children: <Widget>[
-                                  for (var i in Iterable.generate(room.template.roles.length))
-                                    Padding(
-                                      padding: EdgeInsets.all(12),
-                                      child: Material(
-                                          color: ((showWolves && room.players[i].role is Wolf) || ((anotherIndex ?? -1) == i))
-                                              ? Colors.red
-                                              : Colors.orangeAccent,
-                                          borderRadius: BorderRadius.all(Radius.circular(16)),
-                                          elevation: 8,
-                                          child: InkWell(
-                                            onTap: () => onSeatTapped(i),
-                                            borderRadius: BorderRadius.all(Radius.circular(16)),
-                                            child: Stack(
-                                              children: <Widget>[
-                                                Positioned.fill(
-                                                  child: FutureBuilder(
-                                                    future: FirestoreProvider.instance.getAvatar(seatToPlayerMap[i].uid),
-                                                    builder: (_, AsyncSnapshot<String> urlSnapshot) {
-                                                      if (urlSnapshot.hasData && urlSnapshot != null) {
-                                                        var url = urlSnapshot.data;
-                                                        return Stack(
-                                                          children: <Widget>[
-                                                            Positioned.fill(
-                                                                child: ClipRRect(
-                                                              borderRadius: BorderRadius.circular(13),
-                                                              child: FadeInImage.memoryNetwork(
-                                                                placeholder: kTransparentImage,
-                                                                image: url,
-                                                                fit: BoxFit.cover,
-                                                                width: 26,
-                                                                height: 26,
-                                                              ),
-                                                            )),
-                                                            BackdropFilter(
-                                                                filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-                                                                child: Container(
-                                                                    width: double.infinity,
-                                                                    height: double.infinity,
-                                                                    decoration: BoxDecoration(color: Colors.grey.shade200.withOpacity(0.5)),
-                                                                    child: Container())),
-                                                          ],
-                                                        );
-                                                      }
+                                                  Positioned.fill(
+                                                    child: FutureBuilder(
+                                                      future: FirestoreProvider.instance.getAvatar(seatToPlayerMap[i].uid),
+                                                      builder: (_, AsyncSnapshot<String> urlSnapshot) {
+                                                        if (urlSnapshot.hasData && urlSnapshot != null) {
+                                                          var url = urlSnapshot.data;
+                                                          return Stack(
+                                                            children: <Widget>[
+                                                              Positioned.fill(
+                                                                  child: ClipRRect(
+                                                                borderRadius: BorderRadius.circular(13),
+                                                                child: FadeInImage.memoryNetwork(
+                                                                  placeholder: kTransparentImage,
+                                                                  image: url,
+                                                                  fit: BoxFit.cover,
+                                                                  width: 26,
+                                                                  height: 26,
+                                                                ),
+                                                              )),
+//                                                            BackdropFilter(
+//                                                                filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+//                                                                child: Container(
+//                                                                    width: double.infinity,
+//                                                                    height: double.infinity,
+//                                                                    decoration: BoxDecoration(color: Colors.grey.shade200.withOpacity(0.5)),
+//                                                                    child: Container())),
+                                                              Positioned.fill(
+                                                                  child: ClipRRect(
+                                                                borderRadius: BorderRadius.circular(13),
+                                                                child: BackdropFilter(
+                                                                    filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                                                                    child: Container(
+                                                                        width: 26,
+                                                                        height: 26,
+                                                                        decoration: BoxDecoration(
+                                                                            color: ((showWolves && room.players[i].role is Wolf) ||
+                                                                                    ((anotherIndex ?? -1) == i))
+                                                                                ? Colors.red.shade400.withOpacity(0.8)
+                                                                                : Colors.grey.shade200.withOpacity(0.5)),
+                                                                        child: Container())),
+                                                              )),
+                                                            ],
+                                                          );
+                                                        }
 
-                                                      return Container();
-                                                    },
+                                                        return Container();
+                                                      },
+                                                    ),
                                                   ),
-                                                ),
                                                 Container(
                                                   child: Padding(
                                                     padding: EdgeInsets.only(left: 12, top: 12),
@@ -348,105 +402,116 @@ class _RoomPageState extends State<RoomPage> {
                                                     alignment: Alignment.bottomRight,
                                                     child: Container(
                                                       child: Padding(
-                                                        padding: EdgeInsets.only(right: 12, bottom: 12),
+                                                        padding: EdgeInsets.only(right: 8, bottom: 8),
                                                         child: Icon(Icons.event_seat),
                                                       ),
                                                       decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
                                                     ),
-                                                  )
+                                                  ),
+                                                Positioned.fill(
+                                                  child: InkWell(
+                                                    onTap: () => onSeatTapped(i),
+                                                    splashColor: Colors.orangeAccent,
+                                                    borderRadius: BorderRadius.all(Radius.circular(16)),
+                                                    child: Container(
+                                                      width: double.infinity,
+                                                      height: double.infinity,
+                                                    ),
+                                                  ),
+                                                )
                                               ],
                                             ),
-                                          )),
-                                    )
-                                ],
-                              ),
+                                          ),
+                                        )
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                      Spacer(),
-                      if (imActioner) Padding(padding: EdgeInsets.only(bottom: 12), child: Text(actionMessage)),
-                      if (room.currentActionRole is LuckySon) Padding(padding: EdgeInsets.only(bottom: 12), child: Text("请确认自己是否是幸运儿")),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: buildPadding(children: [
-                          if (room.currentActionRole is LuckySon)
-                            Padding(
-                              padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                child: Text('查看礼物'),
-                                onPressed: () {
-                                  showGiftDialog();
-                                },
-                              ),
-                            ),
-                          if (imHost && room.roomStatus == RoomStatus.seating)
-                            Padding(
-                              padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                child: Text('准备看牌'),
-                                onPressed: () {
-                                  if (players.values.where((element) => element != null).length != room.template.numberOfPlayers) {
-                                    showNotAllSeatedDialog();
-                                  } else {
-                                    showFlipRoleCardDialog();
-                                  }
-                                },
-                              ),
-                            ),
-                          if (imHost && room.roomStatus == RoomStatus.seated)
-                            Padding(
-                              padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                child: Text('开始游戏'),
-                                onPressed: () {
-                                  showStartGameDialog();
-                                },
-                              ),
-                            ),
-                          if (imActioner && myRole is Hunter == false && myRole is BlackTrader == false)
-                            Padding(
-                              padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                child: Text('不使用技能'),
-                                onPressed: () {
-                                  showActionConfirmDialog(-1);
-                                },
-                              ),
-                            ),
-                          if (imHost && firstNightEnded)
-                            Padding(
-                              padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                child: Text('查看昨晚信息'),
-                                onPressed: () {
-                                  showLastNightConfirmDialog();
-                                },
-                              ),
-                            ),
-                          if (room.roomStatus != RoomStatus.seating && mySeatNumber != null)
-                            Padding(
-                              padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                child: Text('查看身份'),
-                                onPressed: () {
-                                  showRoleCardDialog();
-                                },
-                              ),
-                            ),
-                        ]),
-                      )
-                    ],
-                  );
-                }
+                          ),
+                          Spacer(),
+                          if (imActioner) Padding(padding: EdgeInsets.only(bottom: 12), child: Text(actionMessage)),
+                          if (room.currentActionRole is LuckySon) Padding(padding: EdgeInsets.only(bottom: 12), child: Text("请确认自己是否是幸运儿")),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: buildPadding(children: [
+                              if (room.currentActionRole is LuckySon)
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 12),
+                                  child: RaisedButton(
+                                    child: Text('查看礼物'),
+                                    onPressed: () {
+                                      showGiftDialog();
+                                    },
+                                  ),
+                                ),
+                              if (imHost && room.roomStatus == RoomStatus.seating)
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 12),
+                                  child: RaisedButton(
+                                    child: Text('准备看牌'),
+                                    onPressed: () {
+                                      if (players.values.where((element) => element != null).length != room.template.numberOfPlayers) {
+                                        showNotAllSeatedDialog();
+                                      } else {
+                                        showFlipRoleCardDialog();
+                                      }
+                                    },
+                                  ),
+                                ),
+                              if (imHost && room.roomStatus == RoomStatus.seated)
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 12),
+                                  child: RaisedButton(
+                                    child: Text('开始游戏'),
+                                    onPressed: () {
+                                      showStartGameDialog();
+                                    },
+                                  ),
+                                ),
+                              if (imActioner && myRole is Hunter == false && myRole is BlackTrader == false)
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 12),
+                                  child: RaisedButton(
+                                    child: Text('不使用技能'),
+                                    onPressed: () {
+                                      showActionConfirmDialog(-1);
+                                    },
+                                  ),
+                                ),
+                              if (imHost && firstNightEnded)
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 12),
+                                  child: RaisedButton(
+                                    child: Text('查看昨晚信息'),
+                                    onPressed: () {
+                                      showLastNightConfirmDialog();
+                                    },
+                                  ),
+                                ),
+                              if (room.roomStatus != RoomStatus.seating && mySeatNumber != null)
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 12),
+                                  child: RaisedButton(
+                                    child: Text('查看身份'),
+                                    onPressed: () {
+                                      showRoleCardDialog();
+                                    },
+                                  ),
+                                ),
+                            ]),
+                          )
+                        ],
+                      );
+                    }
 
-                return Center(
-                  child: Text('无'),
+                    return Center(
+                      child: Text('无'),
+                    );
+                  },
                 );
               },
-            );
-          },
-        ));
+            )));
   }
 
   void onSeatTapped(int index) {
@@ -710,6 +775,11 @@ class _RoomPageState extends State<RoomPage> {
 
   ///Confirm to see the last night information.
   void showLastNightConfirmDialog() {
+    Widget cancelButton = FlatButton(
+      child: Text("取消"),
+      onPressed: () => Navigator.pop(context),
+    );
+
     Widget continueButton = FlatButton(
       child: Text("确定"),
       onPressed: () {
@@ -722,6 +792,7 @@ class _RoomPageState extends State<RoomPage> {
     AlertDialog alert = AlertDialog(
       title: Text("确定查看昨夜信息？"),
       actions: [
+        cancelButton,
         continueButton,
       ],
     );
@@ -803,8 +874,6 @@ class _RoomPageState extends State<RoomPage> {
         return alert;
       },
     );
-
-    roomHistoryBloc.addRoom(this.room);
   }
 
   ///Allowing everybody to see their role.

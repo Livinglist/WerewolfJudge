@@ -36,7 +36,9 @@ class FirestoreProvider {
     DocumentReference docRef = Firestore.instance.collection(usersKey).document(uid);
     DocumentSnapshot docSnap = await docRef.get();
 
-    return docSnap[userNameKey];
+    if (docSnap.exists) return docSnap[userNameKey];
+
+    return '无名氏';
   }
 
   ///Create a room using [uid] of host and [numOfSeats]
@@ -49,7 +51,9 @@ class FirestoreProvider {
       roomNum = generateRoomNumber();
       docRef = Firestore.instance.collection(rooms).document(roomNum);
       docSnap = await docRef.get();
-    } while (docSnap.exists && DateTime.fromMillisecondsSinceEpoch(docSnap.data[timestamp]).toLocal().difference(DateTime.now()).inHours <= 2);
+    } while (docSnap.exists &&
+        (DateTime.fromMillisecondsSinceEpoch(docSnap.data[timestamp]).toLocal().difference(DateTime.now()).inHours <= 2 ||
+            RoomStatus.values.elementAt(docSnap.data[roomStatusKey]) != RoomStatus.terminated));
 
     docRef.delete().whenComplete(() => docRef.setData({
           actionsKey: {},
@@ -82,6 +86,12 @@ class FirestoreProvider {
 
       return true;
     });
+  }
+
+  Future<void> terminateRoom(String roomNum) async {
+    var docRef = Firestore.instance.collection(rooms).document(roomNum);
+
+    return docRef.setData({roomStatusKey: RoomStatus.terminated.index}, merge: true);
   }
 
   Stream<Room> fetchRoom(String roomNum) {
