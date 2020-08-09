@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:werewolfjudge/model/room.dart';
 
 const roomHistoryKey = 'roomHistory';
+const artworkEnabledKey = 'artworkEnabled';
 
 class SharedPreferencesProvider {
   static final instance = SharedPreferencesProvider._();
@@ -41,5 +42,13 @@ class SharedPreferencesProvider {
 
   String getLastRoom() {
     return _sharedPreferences.getString(roomNumberKey);
+  }
+
+  void setArtworkEnabled(bool val) {
+    _sharedPreferences.setBool(artworkEnabledKey, val);
+  }
+
+  bool getArtworkEnabled() {
+    return _sharedPreferences.getBool(artworkEnabledKey) ?? true;
   }
 }

@@ -132,6 +132,9 @@ flutter:
     - family: Regular
       fonts:
         - asset: assets/fonts/regular.otf
+    - family: Solid
+      fonts:
+        - asset: assets/fonts/solid.otf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

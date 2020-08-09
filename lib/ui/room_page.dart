@@ -14,6 +14,7 @@ import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
 import 'package:werewolfjudge/resource/firestore_provider.dart';
 import 'package:werewolfjudge/resource/judge_audio_provider.dart';
 import 'package:werewolfjudge/resource/role_image_provider.dart';
+import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
 
 import 'components/black_trader_dialog.dart';
 
@@ -42,13 +43,16 @@ class _RoomPageState extends State<RoomPage> {
       imMagician = false,
       luckySonPlayed = false,
       hasShownLuckySonDialog = false,
-      hasPlayedLuckSon = false;
+      hasPlayedLuckSon = false,
+      artworkEnabled = false;
   Room room;
   double gridHeight;
 
   @override
   void initState() {
     Wakelock.enable();
+
+    artworkEnabled = SharedPreferencesProvider.instance.getArtworkEnabled();
 
     super.initState();
   }
@@ -842,6 +846,8 @@ class _RoomPageState extends State<RoomPage> {
       },
     );
 
+    bool showArtwork = this.artworkEnabled;
+
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
       backgroundColor: Colors.black,
@@ -849,19 +855,25 @@ class _RoomPageState extends State<RoomPage> {
         "你的底牌是：",
         style: TextStyle(color: Colors.white),
       ),
-      content: Container(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Image.asset(RoleImageProvider.instance[myRole], fit: BoxFit.fitHeight),
-            Text(
+      content: showArtwork
+          ? Container(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  Image.asset(RoleImageProvider.instance[myRole], fit: BoxFit.fitHeight),
+                  Text(
+                    myRole.roleName,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            )
+          : Text(
               myRole.roleName,
               style: TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
             ),
-          ],
-        ),
-      ),
       actions: [
         continueButton,
       ],

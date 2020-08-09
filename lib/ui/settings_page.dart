@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -8,6 +9,14 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  bool showArtwork;
+
+  @override
+  void initState() {
+    showArtwork = SharedPreferencesProvider.instance.getArtworkEnabled();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,6 +31,15 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Text("¯\\_(ツ)_/¯"),
             ),
           ),
+          SwitchListTile(
+              title: Text('展示角色画像'),
+              value: showArtwork,
+              onChanged: (val) {
+                SharedPreferencesProvider.instance.setArtworkEnabled(val);
+                setState(() {
+                  showArtwork = val;
+                });
+              }),
           AboutListTile(
             applicationIcon: Container(
               height: 50,
@@ -32,10 +50,10 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             applicationName: "萌狼",
-            applicationVersion: "v0.0.2",
+            applicationVersion: "v0.0.3",
             aboutBoxChildren: <Widget>[
               RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   launch("https://livinglist.github.io");
                 },
                 child: Row(
@@ -49,7 +67,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
               RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   launch("https://github.com/Livinglist/WerewolfJudge");
                 },
                 child: Row(

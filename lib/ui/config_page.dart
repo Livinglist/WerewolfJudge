@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:werewolfjudge/model/template.dart';
 import 'package:werewolfjudge/model/wolf_seeder.dart';
@@ -53,6 +56,7 @@ const String wolfBrother = '狼兄';
 
 class _ConfigPageState extends State<ConfigPage> {
   final scrollController = ScrollController();
+  final scaffoldKey = GlobalKey<ScaffoldState>();
   final Map<String, bool> selectedMap = {
     wolf: true,
     wolf1: true,
@@ -117,6 +121,7 @@ class _ConfigPageState extends State<ConfigPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        key: scaffoldKey,
         backgroundColor: Colors.orange,
         appBar: AppBar(
           title: Text('创建房间 ${selectedMap.values.toList().where((e) => e).length}人'),
@@ -127,8 +132,16 @@ class _ConfigPageState extends State<ConfigPage> {
               onPressed: () {
                 CustomTemplate template;
                 List<Role> roles = [];
+                var selectedEntries = selectedMap.entries.where((element) => element.value).toList()
+                  ..shuffle(Random(DateTime.now().microsecondsSinceEpoch));
 
-                for (var i in selectedMap.entries.where((element) => element.value)) {
+                if (selectedEntries.isEmpty) {
+                  scaffoldKey.currentState.hideCurrentSnackBar();
+                  scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('没有选择角色'), backgroundColor: Colors.red));
+                  return;
+                }
+
+                for (var i in selectedEntries) {
                   switch (i.key) {
                     case wolf:
                     case wolf1:
@@ -234,6 +247,8 @@ class _ConfigPageState extends State<ConfigPage> {
                   }
                 }
 
+                print(roles);
+
                 template = CustomTemplate.newGame(roles: roles);
 
                 FirebaseAuthProvider.instance.currentUser.then((user) {
@@ -249,6 +264,225 @@ class _ConfigPageState extends State<ConfigPage> {
         body: ListView(
           controller: scrollController,
           children: <Widget>[
+            buildSubTitle('常见模板'),
+            Divider(),
+            Padding(
+              padding: EdgeInsets.only(left: 12),
+              child: Wrap(
+                spacing: 8,
+                children: <Widget>[
+                  ActionChip(
+                      avatar: Icon(
+                        FontAwesomeIcons.chessQueen,
+                        size: 12,
+                      ),
+                      label: Text('狼美守卫12人'),
+                      onPressed: () {
+                        setState(() {
+                          for (var i in selectedMap.keys) {
+                            selectedMap[i] = false;
+                          }
+
+                          selectedMap[villager] = true;
+                          selectedMap[villager1] = true;
+                          selectedMap[villager2] = true;
+                          selectedMap[villager3] = true;
+                          selectedMap[wolf] = true;
+                          selectedMap[wolf1] = true;
+                          selectedMap[wolf2] = true;
+                          selectedMap[wolfQueen] = true;
+                          selectedMap[seer] = true;
+                          selectedMap[witch] = true;
+                          selectedMap[hunter] = true;
+                          selectedMap[guard] = true;
+                        });
+                      }),
+                  ActionChip(
+                      avatar: Icon(
+                        FontAwesomeIcons.dollarSign,
+                        size: 12,
+                      ),
+                      label: Text('狼兄黑商12人'),
+                      onPressed: () {
+                        setState(() {
+                          for (var i in selectedMap.keys) {
+                            selectedMap[i] = false;
+                          }
+
+                          selectedMap[villager] = true;
+                          selectedMap[villager1] = true;
+                          selectedMap[villager2] = true;
+                          selectedMap[villager3] = true;
+                          selectedMap[wolf] = true;
+                          selectedMap[wolf1] = true;
+                          selectedMap[hiddenWolf] = true;
+                          selectedMap[wolfBrother] = true;
+                          selectedMap[seer] = true;
+                          selectedMap[witch] = true;
+                          selectedMap[hunter] = true;
+                          selectedMap[blackTrader] = true;
+                        });
+                      }),
+                  ActionChip(
+                      avatar: Text(
+                        'tombstone',
+                        style: TextStyle(fontSize: 12, fontFamily: 'Solid'),
+                        textAlign: TextAlign.center,
+                      ),
+                      label: Text('石像鬼守墓人12人'),
+                      onPressed: () {
+                        setState(() {
+                          for (var i in selectedMap.keys) {
+                            selectedMap[i] = false;
+                          }
+
+                          selectedMap[villager] = true;
+                          selectedMap[villager1] = true;
+                          selectedMap[villager2] = true;
+                          selectedMap[villager3] = true;
+                          selectedMap[wolf] = true;
+                          selectedMap[wolf1] = true;
+                          selectedMap[wolf2] = true;
+                          selectedMap[gargoyle] = true;
+                          selectedMap[seer] = true;
+                          selectedMap[witch] = true;
+                          selectedMap[hunter] = true;
+                          selectedMap[graveyardKeeper] = true;
+                        });
+                      }),
+                  ActionChip(
+                      avatar: Icon(
+                        FontAwesomeIcons.solidEye,
+                        size: 12,
+                      ),
+                      label: Text('梦魇守卫12人'),
+                      onPressed: () {
+                        setState(() {
+                          for (var i in selectedMap.keys) {
+                            selectedMap[i] = false;
+                          }
+
+                          selectedMap[villager] = true;
+                          selectedMap[villager1] = true;
+                          selectedMap[villager2] = true;
+                          selectedMap[villager3] = true;
+                          selectedMap[wolf] = true;
+                          selectedMap[wolf1] = true;
+                          selectedMap[wolf2] = true;
+                          selectedMap[nightmare] = true;
+                          selectedMap[seer] = true;
+                          selectedMap[witch] = true;
+                          selectedMap[hunter] = true;
+                          selectedMap[guard] = true;
+                        });
+                      }),
+                  ActionChip(
+                      avatar: Icon(
+                        FontAwesomeIcons.solidMoon,
+                        size: 12,
+                      ),
+                      label: Text('血月猎魔12人'),
+                      onPressed: () {
+                        setState(() {
+                          for (var i in selectedMap.keys) {
+                            selectedMap[i] = false;
+                          }
+
+                          selectedMap[villager] = true;
+                          selectedMap[villager1] = true;
+                          selectedMap[villager2] = true;
+                          selectedMap[villager3] = true;
+                          selectedMap[wolf] = true;
+                          selectedMap[wolf1] = true;
+                          selectedMap[wolf2] = true;
+                          selectedMap[bloodMoon] = true;
+                          selectedMap[seer] = true;
+                          selectedMap[witch] = true;
+                          selectedMap[idiot] = true;
+                          selectedMap[witcher] = true;
+                        });
+                      }),
+                  ActionChip(
+                      avatar: Icon(
+                        FontAwesomeIcons.hornbill,
+                        size: 12,
+                      ),
+                      label: Text('狼王摄梦人12人'),
+                      onPressed: () {
+                        setState(() {
+                          for (var i in selectedMap.keys) {
+                            selectedMap[i] = false;
+                          }
+
+                          selectedMap[villager] = true;
+                          selectedMap[villager1] = true;
+                          selectedMap[villager2] = true;
+                          selectedMap[villager3] = true;
+                          selectedMap[wolf] = true;
+                          selectedMap[wolf1] = true;
+                          selectedMap[wolf2] = true;
+                          selectedMap[wolfKing] = true;
+                          selectedMap[seer] = true;
+                          selectedMap[witch] = true;
+                          selectedMap[hunter] = true;
+                          selectedMap[celebrity] = true;
+                        });
+                      }),
+                  ActionChip(
+                      avatar: Icon(
+                        FontAwesomeIcons.magic,
+                        size: 12,
+                      ),
+                      label: Text('狼王魔术师12人'),
+                      onPressed: () {
+                        setState(() {
+                          for (var i in selectedMap.keys) {
+                            selectedMap[i] = false;
+                          }
+
+                          selectedMap[villager] = true;
+                          selectedMap[villager1] = true;
+                          selectedMap[villager2] = true;
+                          selectedMap[villager3] = true;
+                          selectedMap[wolf] = true;
+                          selectedMap[wolf1] = true;
+                          selectedMap[wolf2] = true;
+                          selectedMap[wolfKing] = true;
+                          selectedMap[seer] = true;
+                          selectedMap[witch] = true;
+                          selectedMap[hunter] = true;
+                          selectedMap[magician] = true;
+                        });
+                      }),
+                  ActionChip(
+                      avatar: Icon(
+                        FontAwesomeIcons.robot,
+                        size: 12,
+                      ),
+                      label: Text('机械狼通灵师12人'),
+                      onPressed: () {
+                        setState(() {
+                          for (var i in selectedMap.keys) {
+                            selectedMap[i] = false;
+                          }
+
+                          selectedMap[villager] = true;
+                          selectedMap[villager1] = true;
+                          selectedMap[villager2] = true;
+                          selectedMap[villager3] = true;
+                          selectedMap[wolf] = true;
+                          selectedMap[wolf1] = true;
+                          selectedMap[wolf2] = true;
+                          selectedMap[wolfRobot] = true;
+                          selectedMap[psychic] = true;
+                          selectedMap[witch] = true;
+                          selectedMap[hunter] = true;
+                          selectedMap[guard] = true;
+                        });
+                      }),
+                ],
+              ),
+            ),
             buildSubTitle('狼人'),
             Divider(),
             Padding(
@@ -404,7 +638,6 @@ class _ConfigPageState extends State<ConfigPage> {
                   buildFilterChip(blackTrader),
                   buildFilterChip(graveyardKeeper),
                   buildFilterChip(knight),
-                  buildFilterChip(cupid),
                   buildFilterChip(celebrity),
                   buildFilterChip(moderator),
                   buildFilterChip(tree),
@@ -422,6 +655,7 @@ class _ConfigPageState extends State<ConfigPage> {
                 spacing: 8,
                 children: <Widget>[
                   buildFilterChip(slacker),
+                  buildFilterChip(cupid),
                   buildFilterChip(thief),
                   buildFilterChip(bride),
                 ],
@@ -435,7 +669,7 @@ class _ConfigPageState extends State<ConfigPage> {
               ),
             ),
             Divider(),
-            Padding(padding: EdgeInsets.only(left: 12), child: Text("该应用可以充当第一夜法官的板子有：狼美守卫, 黑商狼兄, 石像鬼守墓人, 梦魇守卫, 血月猎魔, 魔术师狼王, 机械狼通灵师。")),
+            Padding(padding: EdgeInsets.only(left: 12), child: Text("该应用可以充当第一夜法官的板子有：狼美守卫, 狼兄黑商, 石像鬼守墓人, 梦魇守卫, 血月猎魔, 狼王摄梦人, 狼王魔术师, 机械狼通灵师。")),
             SizedBox(
               height: 36,
             ),
