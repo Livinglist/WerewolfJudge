@@ -31,6 +31,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Text("¯\\_(ツ)_/¯"),
             ),
           ),
+          Divider(height: 0),
           SwitchListTile(
               title: Text('展示角色画像'),
               value: showArtwork,
@@ -40,6 +41,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   showArtwork = val;
                 });
               }),
+          Divider(height: 0),
           AboutListTile(
             applicationIcon: Container(
               height: 50,
