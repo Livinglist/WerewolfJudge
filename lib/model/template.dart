@@ -87,7 +87,18 @@ class CustomTemplate extends Template {
             numberOfPlayers: roles.length,
             roles: roles..removeWhere((element) => element is LuckySon),
             actionOrder: allActionOrder.where((value) => roles.hasType(value)).toList()) {
-    roles.shuffle(Random(DateTime.now().millisecondsSinceEpoch));
+    roles.shuffle();
+    List<Role> firstHalf = [], secondHalf = [];
+
+    for (int i = 0; i < roles.length; i++) {
+      if (i % 2 == 0) {
+        firstHalf.add(roles[i]);
+      } else {
+        secondHalf.add(roles[i]);
+      }
+    }
+
+    roles = [...firstHalf..shuffle(), ...secondHalf..shuffle()]..shuffle();
   }
 
   CustomTemplate.from({List<dynamic> roles})

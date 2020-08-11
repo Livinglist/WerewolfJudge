@@ -132,8 +132,7 @@ class _ConfigPageState extends State<ConfigPage> {
               onPressed: () {
                 CustomTemplate template;
                 List<Role> roles = [];
-                var selectedEntries = selectedMap.entries.where((element) => element.value).toList()
-                  ..shuffle(Random(DateTime.now().microsecondsSinceEpoch));
+                var selectedEntries = selectedMap.entries.where((element) => element.value).toList();
 
                 if (selectedEntries.isEmpty) {
                   scaffoldKey.currentState.hideCurrentSnackBar();
