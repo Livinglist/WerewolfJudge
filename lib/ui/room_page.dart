@@ -638,6 +638,12 @@ class _RoomPageState extends State<RoomPage> {
       child: Text("确定"),
       onPressed: () {
         Navigator.pop(context);
+
+        //如果index为-1，则视为不发动技能
+        if (index == -1) {
+          Timer(endingDuration, () => room.proceed(null));
+        }
+
         var msg = room.action(index);
         if (msg != null) {
           showActionResultDialog(index, msg);

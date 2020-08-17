@@ -325,21 +325,25 @@ class Room {
 
   //Order: guard -> wolf -> wolf queen -> witch -> seer -> hunter
   void proceed(int target, {bool usePoison = true, Type giftedByBlackTrader = Witch}) {
-    if (currentActionRole is Witch) {
-      target = usePoison ? -1 * (target + 1) : target;
-    } else if (currentActionRole is Hunter || currentActionRole is WolfBrother) {
-      target = null;
-    } else if (currentActionRole is BlackTrader) {
-      //如果黑商选择的玩家是狼人，那么target变为-1，意为黑商倒台
-      if (players[target].role is Wolf) {
-        target = -1;
-      } else {
-        var indexOfRole = Player.roleTypeToIndex(giftedByBlackTrader);
-        target = target + indexOfRole * 100;
+    if (target == null) {
+      FirestoreProvider.instance.performAction(currentActionRole, target, currentActionerIndex + 1, usePoison: usePoison);
+    } else {
+      if (currentActionRole is Witch) {
+        target = usePoison ? -1 * (target + 1) : target;
+      } else if (currentActionRole is Hunter || currentActionRole is WolfBrother) {
+        target = null;
+      } else if (currentActionRole is BlackTrader) {
+        //如果黑商选择的玩家是狼人，那么target变为-1，意为黑商倒台
+        if (players[target].role is Wolf) {
+          target = -1;
+        } else {
+          var indexOfRole = Player.roleTypeToIndex(giftedByBlackTrader);
+          target = target + indexOfRole * 100;
+        }
       }
-    }
 
-    FirestoreProvider.instance.performAction(currentActionRole, target, currentActionerIndex + 1, usePoison: usePoison);
+      FirestoreProvider.instance.performAction(currentActionRole, target, currentActionerIndex + 1, usePoison: usePoison);
+    }
   }
 
   void checkInForLuckySonVerifications(int myIndex) {
