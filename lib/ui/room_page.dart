@@ -1202,25 +1202,5 @@ class _RoomPageState extends State<RoomPage> {
     File file = File(tempPath);
     var audioFile = await rootBundle.load('assets/' + audioPath);
     file.writeAsBytes(audioFile.buffer.asUint8List()).whenComplete(() => audioPlayer.play(tempPath));
-
-    //await audioPlayer.stop();
-
-//    Future.doWhile(() async {
-//      if (audioIsPlaying) {
-//        return true;
-//      } else {
-//        var tempDir = await getTemporaryDirectory();
-//        var tempPath = tempDir.path + '/temp.mp3';
-//        File file = File(tempPath);
-//        var audioFile = await rootBundle.load(audioPath);
-//        await file.writeAsBytes(audioFile.buffer.asUint8List());
-//
-//        audioPlayer.play(tempPath);
-//
-//        audioIsPlaying = true;
-//
-//        return false;
-//      }
-//    });
   }
 }
