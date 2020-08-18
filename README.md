@@ -1,6 +1,6 @@
 # 萌狼（WerewolfJudge）
 
-![](https://img.shields.io/itunes/v/1525690109?label=App%20Store)
+[![](https://img.shields.io/itunes/v/1525690109?label=App%20Store)](https://apps.apple.com/us/app/萌狼-狼人杀法官/id1525690109)
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/7277662/90495289-46f28980-e0f9-11ea-9559-b32943894e1d.png" width="200">
