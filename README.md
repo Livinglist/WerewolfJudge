@@ -2,7 +2,7 @@
 
 ![](https://img.shields.io/itunes/v/1525690109?label=App%20Store)
 
-<p float="left">
+<p align="center">
   <img src="https://user-images.githubusercontent.com/7277662/90495289-46f28980-e0f9-11ea-9559-b32943894e1d.png" width="200">
   <img src="https://user-images.githubusercontent.com/7277662/90495231-380bd700-e0f9-11ea-9d02-0a79cec4ce26.png" width="200">
   <img src="https://user-images.githubusercontent.com/7277662/90495222-3510e680-e0f9-11ea-9868-4b651ce9d3f6.png" width="200">
