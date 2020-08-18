@@ -1,5 +1,6 @@
 # 萌狼（WerewolfJudge）
 
+![iOS](https://img.shields.io/badge/iOS-11%20-blue)
 [![](https://img.shields.io/itunes/v/1525690109?label=App%20Store)](https://apps.apple.com/us/app/萌狼-狼人杀法官/id1525690109)
 
 <p align="center">
