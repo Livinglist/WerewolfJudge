@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:ui';
-
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:audioplayers/audio_cache.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:werewolfjudge/bloc/history_bloc.dart';
@@ -28,7 +31,7 @@ class RoomPage extends StatefulWidget {
 }
 
 class _RoomPageState extends State<RoomPage> {
-  final audioPlayer = AudioCache();
+  final audioPlayer = AudioPlayer();
   final endingDuration = Duration(seconds: 0);
 
   ///Reserved for Magician.
@@ -44,9 +47,13 @@ class _RoomPageState extends State<RoomPage> {
       luckySonPlayed = false,
       hasShownLuckySonDialog = false,
       hasPlayedLuckSon = false,
-      artworkEnabled = false;
+      artworkEnabled = false,
+      hasSkilledWolf = false;
   Room room;
   double gridHeight;
+
+  ///天亮后的发言顺序
+  String orderMsg;
 
   @override
   void initState() {
@@ -60,7 +67,7 @@ class _RoomPageState extends State<RoomPage> {
   @override
   void dispose() {
     Wakelock.disable();
-    audioPlayer.clearCache();
+    audioPlayer.dispose();
     super.dispose();
   }
 
@@ -111,14 +118,11 @@ class _RoomPageState extends State<RoomPage> {
                   builder: (_, AsyncSnapshot<Room> snapshot) {
                     if (snapshot.hasData) {
                       room = snapshot.data;
-                      gridHeight = gridHeight ?? ((MediaQuery.of(context).size.width / 4) + 12) * ((room.template.roles.length / 4).ceil());
+                      gridHeight ??= ((MediaQuery.of(context).size.width / 4) + 12) * ((room.template.roles.length / 4).ceil());
+                      hasSkilledWolf ??= room.hasSkilledWolf;
 
                       var players = room.players;
 
-//                  Map<int, Player> seatToPlayerMap = Map.fromEntries(List.generate(room.template.roles.length, (index) {
-//                    return MapEntry<int, Player>(
-//                        index, players.values.singleWhere((element) => (element?.seatNumber ?? -1) == index, orElse: () => null));
-//                  }));
                       var seatToPlayerMap = room.players;
 
                       for (var i in Iterable.generate(players.length)) {
@@ -185,7 +189,20 @@ class _RoomPageState extends State<RoomPage> {
                               myRole is Gargoyle == false &&
                               myRole is HiddenWolf == false &&
                               myRole is WolfRobot == false &&
-                              myRole is WolfBrother == false) showWolves = true;
+                              myRole is WolfBrother == false) {
+                            showWolves = true;
+                          }
+
+                          //如果有与普通狼人见面的技能狼，普狼不能开刀
+                          if (room.currentActionRole.runtimeType == Wolf) {
+                            if (room.hasSkilledWolf && myRole.runtimeType == Wolf) {
+                              imActioner = false;
+                            } else if (mySeatNumber == room.actionWolfIndex) {
+                              imActioner = true;
+                            } else {
+                              imActioner = false;
+                            }
+                          }
                         } else if (room.currentActionRole is Wolf &&
                             (myRole is WolfKing || myRole is WolfQueen || myRole is Nightmare || myRole is WolfBrother || myRole is BloodMoon)) {
                           //showActionMessage((myRole as Wolf) as ActionableMixin);
@@ -206,18 +223,18 @@ class _RoomPageState extends State<RoomPage> {
 
                               var timelapse = Duration(seconds: 5);
 
-                              audioPlayer.play(endAudioPath);
+                              playAudio(endAudioPath);
 
                               Timer(timelapse, () {
-                                audioPlayer.play(audioPath);
+                                playAudio(audioPath);
                                 room.terminate();
                               });
                             } else {
                               String endAudioPath = JudgeAudioProvider.instance.getEndingAudio(room.lastActionRole);
                               var timelapse = Duration(seconds: 5);
-                              audioPlayer.play(endAudioPath);
+                              playAudio(endAudioPath);
                               Timer(timelapse, () {
-                                audioPlayer.play(JudgeAudioProvider.instance.nightEnd);
+                                playAudio(JudgeAudioProvider.instance.nightEnd);
                                 room.terminate();
                               });
                             }
@@ -232,12 +249,12 @@ class _RoomPageState extends State<RoomPage> {
                               if (room.currentActionRole is LuckySon) hasPlayedLuckSon = true;
 
                               if (endAudioPath != null) {
-                                audioPlayer.play(endAudioPath);
+                                playAudio(endAudioPath);
                               }
 
                               if (audioPath != null)
                                 Timer(timelapse, () {
-                                  audioPlayer.play(audioPath);
+                                  playAudio(audioPath);
                                 });
                             }
                           }
@@ -262,7 +279,9 @@ class _RoomPageState extends State<RoomPage> {
                       print("myRole is $myRole");
                       print("myRole.runtimeType is ${myRole.runtimeType}");
 
-                      return Column(
+                      bool scrollable = gridHeight > MediaQuery.of(context).size.height;
+
+                      Widget child = Column(
                         children: <Widget>[
                           Padding(
                               padding: EdgeInsets.all(12),
@@ -364,13 +383,6 @@ class _RoomPageState extends State<RoomPage> {
                                                                   height: 26,
                                                                 ),
                                                               )),
-//                                                            BackdropFilter(
-//                                                                filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-//                                                                child: Container(
-//                                                                    width: double.infinity,
-//                                                                    height: double.infinity,
-//                                                                    decoration: BoxDecoration(color: Colors.grey.shade200.withOpacity(0.5)),
-//                                                                    child: Container())),
                                                               Positioned.fill(
                                                                   child: ClipRRect(
                                                                 borderRadius: BorderRadius.circular(13),
@@ -433,7 +445,7 @@ class _RoomPageState extends State<RoomPage> {
                               ],
                             ),
                           ),
-                          Spacer(),
+                          if (scrollable == false) Spacer(),
                           if (imActioner) Padding(padding: EdgeInsets.only(bottom: 12), child: Text(actionMessage)),
                           if (room.currentActionRole is LuckySon) Padding(padding: EdgeInsets.only(bottom: 12), child: Text("请确认自己是否是幸运儿")),
                           Row(
@@ -507,6 +519,8 @@ class _RoomPageState extends State<RoomPage> {
                           )
                         ],
                       );
+
+                      return scrollable ? SingleChildScrollView(child: child) : child;
                     }
 
                     return Center(
@@ -642,6 +656,7 @@ class _RoomPageState extends State<RoomPage> {
         //如果index为-1，则视为不发动技能
         if (index == -1) {
           Timer(endingDuration, () => room.proceed(null));
+          return;
         }
 
         var msg = room.action(index);
@@ -664,7 +679,7 @@ class _RoomPageState extends State<RoomPage> {
     if (index == -1) {
       msg = "确定不发动技能吗？";
     } else if (room.currentActionRole.runtimeType == Wolf) {
-      msg = "确定${(myRole as ActionableMixin).actionConfirmMessage}${index + 1}号玩家?";
+      msg = "确定${Wolf().actionConfirmMessage}${index + 1}号玩家?";
     } else {
       msg = "确定${(myRole as ActionableMixin).actionConfirmMessage}${index + 1}号${anotherIndex == null ? "" : "和${anotherIndex + 1}号玩家"}?";
     }
@@ -930,7 +945,7 @@ class _RoomPageState extends State<RoomPage> {
       onPressed: () {
         Navigator.pop(context);
 
-        audioPlayer.play(JudgeAudioProvider.instance.night);
+        playAudio(JudgeAudioProvider.instance.night);
 
         Timer(Duration(seconds: 8), () => room.startGame());
         //FirestoreProvider.instance.startGame();
@@ -1177,5 +1192,35 @@ class _RoomPageState extends State<RoomPage> {
     }
 
     return children;
+  }
+
+  void playAudio(String audioPath) async {
+    print("The audio path is $audioPath");
+    await audioPlayer.release();
+    var tempDir = await getTemporaryDirectory();
+    var tempPath = tempDir.path + '/' + audioPath.replaceFirst('/', '_');
+    File file = File(tempPath);
+    var audioFile = await rootBundle.load('assets/' + audioPath);
+    file.writeAsBytes(audioFile.buffer.asUint8List()).whenComplete(() => audioPlayer.play(tempPath));
+
+    //await audioPlayer.stop();
+
+//    Future.doWhile(() async {
+//      if (audioIsPlaying) {
+//        return true;
+//      } else {
+//        var tempDir = await getTemporaryDirectory();
+//        var tempPath = tempDir.path + '/temp.mp3';
+//        File file = File(tempPath);
+//        var audioFile = await rootBundle.load(audioPath);
+//        await file.writeAsBytes(audioFile.buffer.asUint8List());
+//
+//        audioPlayer.play(tempPath);
+//
+//        audioIsPlaying = true;
+//
+//        return false;
+//      }
+//    });
   }
 }

@@ -17,6 +17,7 @@ import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
 import 'package:werewolfjudge/resource/firestore_provider.dart';
 import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
 import 'package:werewolfjudge/ui/history_page.dart';
+import 'package:werewolfjudge/ui/instruction_page.dart';
 import 'package:werewolfjudge/ui/room_page.dart';
 import 'package:werewolfjudge/ui/settings_page.dart';
 import 'package:werewolfjudge/util/phone_number_formatter.dart';
@@ -41,6 +42,7 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    var childHeight = MediaQuery.of(context).size.width / 2;
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
@@ -60,109 +62,163 @@ class _MainPageState extends State<MainPage> {
             userName = user.displayName ?? user.uid;
           }
 
-          return Column(children: <Widget>[
-            Padding(
-              padding: EdgeInsets.all(12),
-              child: Material(
-                  color: Colors.orange,
-                  elevation: 8,
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
-                  child: InkWell(
-                    onTap: user == null ? showLoginOptionDialog : showLogoutBottomSheet,
+          return SingleChildScrollView(
+            child: Column(children: <Widget>[
+              Padding(
+                padding: EdgeInsets.all(12),
+                child: Material(
+                    color: Colors.orange,
+                    elevation: 8,
                     borderRadius: BorderRadius.all(Radius.circular(16)),
-                    splashColor: Colors.orangeAccent,
-                    child: Container(
-                      width: double.infinity,
-                      child: Padding(
-                          padding: EdgeInsets.all(12),
-                          child: Row(
-                            children: <Widget>[
-                              if (user != null)
-                                FutureBuilder(
-                                  future: FirestoreProvider.instance.getAvatar(user.uid),
-                                  builder: (_, AsyncSnapshot<String> urlSnapshot) {
-                                    if (urlSnapshot.hasData && urlSnapshot != null) {
-                                      var url = urlSnapshot.data;
-                                      return ClipRRect(
-                                        borderRadius: BorderRadius.circular(13),
-                                        child: FadeInImage.memoryNetwork(
-                                          placeholder: kTransparentImage,
-                                          image: url,
-                                          fit: BoxFit.cover,
-                                          width: 26,
-                                          height: 26,
-                                        ),
-                                      );
-                                    }
+                    child: InkWell(
+                      onTap: user == null ? showLoginOptionDialog : showLogoutBottomSheet,
+                      borderRadius: BorderRadius.all(Radius.circular(16)),
+                      splashColor: Colors.orangeAccent,
+                      child: Container(
+                        width: double.infinity,
+                        child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Row(
+                              children: <Widget>[
+                                if (user != null)
+                                  FutureBuilder(
+                                    future: FirestoreProvider.instance.getAvatar(user.uid),
+                                    builder: (_, AsyncSnapshot<String> urlSnapshot) {
+                                      if (urlSnapshot.hasData && urlSnapshot != null) {
+                                        var url = urlSnapshot.data;
+                                        return ClipRRect(
+                                          borderRadius: BorderRadius.circular(13),
+                                          child: FadeInImage.memoryNetwork(
+                                            placeholder: kTransparentImage,
+                                            image: url,
+                                            fit: BoxFit.cover,
+                                            width: 26,
+                                            height: 26,
+                                          ),
+                                        );
+                                      }
 
-                                    return Icon(FontAwesomeIcons.userCircle);
-                                  },
+                                      return Icon(FontAwesomeIcons.userCircle);
+                                    },
+                                  ),
+                                if (user == null) Icon(FontAwesomeIcons.userCircle),
+                                SizedBox(
+                                  width: 12,
                                 ),
-                              if (user == null) Icon(FontAwesomeIcons.userCircle),
-                              SizedBox(
-                                width: 12,
-                              ),
-                              Text(user == null ? "登陆" : userName),
-                            ],
-                          )),
-                      decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
+                                Text(user == null ? "登陆" : userName),
+                              ],
+                            )),
+                        decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
+                      ),
+                    )),
+              ),
+              Table(
+                columnWidths: {
+                  0: FractionColumnWidth(0.5),
+                  1: FractionColumnWidth(0.5),
+                },
+                children: [
+                  TableRow(children: [
+                    Container(
+                      height: childHeight,
+                      child: MainPageTile(
+                          title: '进入房间',
+                          iconTitle: 'person-booth',
+                          onTap: () {
+                            if (user == null) {
+                              scaffoldKey.currentState.hideCurrentSnackBar();
+                              scaffoldKey.currentState.showSnackBar(SnackBar(
+                                content: Text("请先登陆"),
+                                action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
+                              ));
+                            } else
+                              showEnterRoomDialog();
+                          }),
                     ),
-                  )),
-            ),
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                physics: NeverScrollableScrollPhysics(),
-                children: <Widget>[
-                  MainPageTile(
-                      title: '进入房间',
-                      iconTitle: 'person-booth',
-                      onTap: () {
-                        if (user == null) {
-                          scaffoldKey.currentState.hideCurrentSnackBar();
-                          scaffoldKey.currentState.showSnackBar(SnackBar(
-                            content: Text("请先登陆"),
-                            action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
-                          ));
-                        } else
-                          showEnterRoomDialog();
-                      }),
-                  MainPageTile(
-                      title: '创建房间',
-                      iconTitle: 'concierge-bell',
-                      onTap: () {
-                        if (user == null) {
-                          scaffoldKey.currentState.hideCurrentSnackBar();
-                          scaffoldKey.currentState.showSnackBar(SnackBar(
-                            content: Text("请先登陆"),
-                            action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
-                          ));
-                        } else
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
-                      }),
-                  MainPageTile(
-                      title: '返回上局',
-                      iconTitle: 'arrow-alt-circle-left',
-                      onTap: () {
-                        var lastRoomNumber = getLastRoomNumber();
-                        FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
-                          if (isValid) {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: lastRoomNumber)));
-                          }
-                        });
-                      }),
-                  MainPageTile(
-                      title: '设置',
-                      iconTitle: 'sliders-v-square',
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage()));
-                      }),
+                    Container(
+                      height: childHeight,
+                      child: MainPageTile(
+                          title: '创建房间',
+                          iconTitle: 'concierge-bell',
+                          onTap: () {
+                            if (user == null) {
+                              scaffoldKey.currentState.hideCurrentSnackBar();
+                              scaffoldKey.currentState.showSnackBar(SnackBar(
+                                content: Text("请先登陆"),
+                                action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
+                              ));
+                            } else
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
+                          }),
+                    ),
+                  ]),
+                  TableRow(children: [
+                    Container(
+                      height: childHeight,
+                      child: MainPageTile(
+                          title: '返回上局',
+                          iconTitle: 'arrow-alt-circle-left',
+                          onTap: () {
+                            var lastRoomNumber = getLastRoomNumber();
+                            FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
+                              if (isValid) {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: lastRoomNumber)));
+                              }
+                            });
+                          }),
+                    ),
+                    Container(
+                      height: childHeight,
+                      child: MainPageTile(
+                          title: '设置',
+                          iconTitle: 'sliders-v-square',
+                          onTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage()));
+                          }),
+                    )
+                  ]),
                 ],
               ),
-            ),
-          ]);
+              Container(
+                height: childHeight,
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Material(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.all(Radius.circular(16)),
+                      elevation: 8,
+                      child: InkWell(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => InstructionPage())),
+                        splashColor: Colors.orangeAccent,
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                        child: Container(
+                          child: Stack(
+                            children: <Widget>[
+                              Positioned(
+                                left: 12,
+                                top: 12,
+                                child: Text('使用说明'),
+                              ),
+                              Positioned(
+                                left: 12,
+                                top: 36,
+                                right: 12,
+                                bottom: 12,
+                                child: Text(
+                                  '1. 当场上有与普通狼人同时见面的技能狼时，狼人夜由技能狼开刀。\n2. 当场上没有与普通狼人同时见面的技能狼时，狼人夜由座位号最小的普通狼人开刀。\n3. 与普通狼人见面的技能狼（如狼美人，白狼王等），在其单独的回合使用其技能。\n4. 在确认完技能发动的对象或状态后，当前角色的回合会立刻结束，进行到下一个角色的回合。故狼人在狼人夜请先讨论战术后，方可开刀。',
+                                  overflow: TextOverflow.fade,
+                                ),
+                              )
+                            ],
+                          ),
+                          decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
+                        ),
+                      )),
+                ),
+              ),
+              SizedBox(height: 12)
+            ]),
+          );
         },
       ),
     );

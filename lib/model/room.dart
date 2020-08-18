@@ -32,6 +32,25 @@ class Room {
 
   bool hasPoison = false, hasAntidote = false;
 
+  bool get hasSkilledWolf {
+    var rolesSet = template.rolesType.toSet();
+    print(rolesSet);
+    if (rolesSet.contains(WolfKing) ||
+        rolesSet.contains(WolfQueen) ||
+        rolesSet.contains(WolfBrother) ||
+        rolesSet.contains(Nightmare) ||
+        rolesSet.contains(BloodMoon) ||
+        rolesSet.contains(WolfSeeder)) {
+      return true;
+    }
+    return false;
+  }
+
+  int get actionWolfIndex {
+    var temp = players.values.where((element) => element.role.runtimeType == Wolf).map((e) => e.seatNumber).toList()..sort();
+    return temp.first;
+  }
+
   Role get currentActionRole {
     if (currentActionerIndex == template.actionOrder.length) {
       if (template.rolesType.contains(BlackTrader))
@@ -325,6 +344,7 @@ class Room {
 
   //Order: guard -> wolf -> wolf queen -> witch -> seer -> hunter
   void proceed(int target, {bool usePoison = true, Type giftedByBlackTrader = Witch}) {
+    print("proceed() target is $target");
     if (target == null) {
       FirestoreProvider.instance.performAction(currentActionRole, target, currentActionerIndex + 1, usePoison: usePoison);
     } else {
