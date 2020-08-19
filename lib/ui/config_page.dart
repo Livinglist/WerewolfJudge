@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:vibration/vibration.dart';
 
 import 'package:werewolfjudge/model/template.dart';
 import 'package:werewolfjudge/model/wolf_seeder.dart';
@@ -96,11 +96,15 @@ class _ConfigPageState extends State<ConfigPage> {
     psychic: false,
     wolfBrother: false,
   };
-  bool showShadow = false;
+  bool showShadow = false, shouldVibrate = false;
 
   @override
   void initState() {
-    super.initState();
+    Vibration.hasCustomVibrationsSupport().then((hasCoreHaptics) {
+      setState(() {
+        shouldVibrate = hasCoreHaptics;
+      });
+    });
 
     scrollController.addListener(() {
       if (this.mounted) {
@@ -115,6 +119,8 @@ class _ConfigPageState extends State<ConfigPage> {
         }
       }
     });
+
+    super.initState();
   }
 
   @override
@@ -276,6 +282,10 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('狼美守卫12人'),
                       onPressed: () {
+                        Vibration.cancel().then((_) {
+                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
+                        });
+
                         setState(() {
                           for (var i in selectedMap.keys) {
                             selectedMap[i] = false;
@@ -302,6 +312,10 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('狼兄黑商12人'),
                       onPressed: () {
+                        Vibration.cancel().then((_) {
+                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
+                        });
+
                         setState(() {
                           for (var i in selectedMap.keys) {
                             selectedMap[i] = false;
@@ -329,6 +343,10 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('石像鬼守墓人12人'),
                       onPressed: () {
+                        Vibration.cancel().then((_) {
+                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
+                        });
+
                         setState(() {
                           for (var i in selectedMap.keys) {
                             selectedMap[i] = false;
@@ -355,6 +373,10 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('梦魇守卫12人'),
                       onPressed: () {
+                        Vibration.cancel().then((_) {
+                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
+                        });
+
                         setState(() {
                           for (var i in selectedMap.keys) {
                             selectedMap[i] = false;
@@ -381,6 +403,10 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('血月猎魔12人'),
                       onPressed: () {
+                        Vibration.cancel().then((_) {
+                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
+                        });
+
                         setState(() {
                           for (var i in selectedMap.keys) {
                             selectedMap[i] = false;
@@ -407,6 +433,10 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('狼王摄梦人12人'),
                       onPressed: () {
+                        Vibration.cancel().then((_) {
+                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
+                        });
+
                         setState(() {
                           for (var i in selectedMap.keys) {
                             selectedMap[i] = false;
@@ -433,6 +463,10 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('狼王魔术师12人'),
                       onPressed: () {
+                        Vibration.cancel().then((_) {
+                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
+                        });
+
                         setState(() {
                           for (var i in selectedMap.keys) {
                             selectedMap[i] = false;
@@ -459,6 +493,10 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('机械狼通灵师12人'),
                       onPressed: () {
+                        Vibration.cancel().then((_) {
+                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
+                        });
+
                         setState(() {
                           for (var i in selectedMap.keys) {
                             selectedMap[i] = false;
@@ -488,56 +526,11 @@ class _ConfigPageState extends State<ConfigPage> {
               child: Wrap(
                 spacing: 8,
                 children: <Widget>[
-                  FilterChip(
-                    label: Text('普狼'),
-                    elevation: selectedMap[wolf] ? 4 : 0,
-                    selected: selectedMap[wolf],
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedMap[wolf] = selected;
-                      });
-                    },
-                  ),
-                  FilterChip(
-                    elevation: selectedMap[wolf1] ? 4 : 0,
-                    label: Text('普狼'),
-                    selected: selectedMap[wolf1],
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedMap[wolf1] = selected;
-                      });
-                    },
-                  ),
-                  FilterChip(
-                    elevation: selectedMap[wolf2] ? 4 : 0,
-                    label: Text('普狼'),
-                    selected: selectedMap[wolf2],
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedMap[wolf2] = selected;
-                      });
-                    },
-                  ),
-                  FilterChip(
-                    elevation: selectedMap[wolf3] ? 4 : 0,
-                    label: Text('普狼'),
-                    selected: selectedMap[wolf3],
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedMap[wolf3] = selected;
-                      });
-                    },
-                  ),
-                  FilterChip(
-                    elevation: selectedMap[wolf4] ? 4 : 0,
-                    label: Text('普狼'),
-                    selected: selectedMap[wolf4],
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedMap[wolf4] = selected;
-                      });
-                    },
-                  ),
+                  buildFilterChip(wolf),
+                  buildFilterChip(wolf1),
+                  buildFilterChip(wolf2),
+                  buildFilterChip(wolf3),
+                  buildFilterChip(wolf4),
                 ],
               ),
             ),
@@ -567,56 +560,11 @@ class _ConfigPageState extends State<ConfigPage> {
               child: Wrap(
                 spacing: 8,
                 children: <Widget>[
-                  FilterChip(
-                    elevation: selectedMap[villager] ? 4 : 0,
-                    label: Text('普通村民'),
-                    selected: selectedMap[villager],
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedMap[villager] = selected;
-                      });
-                    },
-                  ),
-                  FilterChip(
-                    elevation: selectedMap[villager1] ? 4 : 0,
-                    label: Text('普通村民'),
-                    selected: selectedMap[villager1],
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedMap[villager1] = selected;
-                      });
-                    },
-                  ),
-                  FilterChip(
-                    elevation: selectedMap[villager2] ? 4 : 0,
-                    label: Text('普通村民'),
-                    selected: selectedMap[villager2],
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedMap[villager2] = selected;
-                      });
-                    },
-                  ),
-                  FilterChip(
-                    elevation: selectedMap[villager3] ? 4 : 0,
-                    label: Text('普通村民'),
-                    selected: selectedMap[villager3],
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedMap[villager3] = selected;
-                      });
-                    },
-                  ),
-                  FilterChip(
-                    elevation: selectedMap[villager4] ? 4 : 0,
-                    label: Text('普通村民'),
-                    selected: selectedMap[villager4],
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedMap[villager4] = selected;
-                      });
-                    },
-                  ),
+                  buildFilterChip(villager),
+                  buildFilterChip(villager1),
+                  buildFilterChip(villager2),
+                  buildFilterChip(villager3),
+                  buildFilterChip(villager4),
                   buildFilterChip(pervert),
                 ],
               ),
@@ -678,9 +626,13 @@ class _ConfigPageState extends State<ConfigPage> {
   Widget buildFilterChip(String roleName) {
     return FilterChip(
       elevation: selectedMap[roleName] ? 4 : 0,
-      label: Text(roleName),
+      label: Text(roleName.replaceAll(RegExp(r'[0-9]\b'), '')),
       selected: selectedMap[roleName],
       onSelected: (selected) {
+        Vibration.cancel().then((_) {
+          Vibration.vibrate(pattern: [0, 5], intensities: [125]);
+        });
+
         setState(() {
           selectedMap[roleName] = selected;
         });

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:vibration/vibration.dart';
 import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -9,10 +10,16 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool showArtwork;
+  bool showArtwork, shouldVibrate = false;
 
   @override
   void initState() {
+    Vibration.hasCustomVibrationsSupport().then((hasCoreHaptics) {
+      setState(() {
+        shouldVibrate = hasCoreHaptics;
+      });
+    });
+
     showArtwork = SharedPreferencesProvider.instance.getArtworkEnabled();
     super.initState();
   }
@@ -36,6 +43,10 @@ class _SettingsPageState extends State<SettingsPage> {
               title: Text('展示角色画像'),
               value: showArtwork,
               onChanged: (val) {
+                Vibration.cancel().then((_) {
+                  Vibration.vibrate(pattern: [0, 5], intensities: [125]);
+                });
+
                 SharedPreferencesProvider.instance.setArtworkEnabled(val);
                 setState(() {
                   showArtwork = val;
