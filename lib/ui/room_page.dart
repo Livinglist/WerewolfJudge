@@ -2,12 +2,10 @@ import 'dart:async';
 import 'dart:ui';
 import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:wakelock/wakelock.dart';
@@ -455,6 +453,8 @@ class _RoomPageState extends State<RoomPage> {
                                 Padding(
                                   padding: EdgeInsets.only(bottom: 12),
                                   child: RaisedButton(
+                                    color: Theme.of(context).primaryColor,
+                                    shape: StadiumBorder(),
                                     child: Text('查看礼物'),
                                     onPressed: () {
                                       showGiftDialog();
@@ -465,6 +465,8 @@ class _RoomPageState extends State<RoomPage> {
                                 Padding(
                                   padding: EdgeInsets.only(bottom: 12),
                                   child: RaisedButton(
+                                    color: Theme.of(context).primaryColor,
+                                    shape: StadiumBorder(),
                                     child: Text('准备看牌'),
                                     onPressed: () {
                                       if (players.values.where((element) => element != null).length != room.template.numberOfPlayers) {
@@ -479,6 +481,8 @@ class _RoomPageState extends State<RoomPage> {
                                 Padding(
                                   padding: EdgeInsets.only(bottom: 12),
                                   child: RaisedButton(
+                                    color: Theme.of(context).primaryColor,
+                                    shape: StadiumBorder(),
                                     child: Text('开始游戏'),
                                     onPressed: () {
                                       showStartGameDialog();
@@ -489,6 +493,8 @@ class _RoomPageState extends State<RoomPage> {
                                 Padding(
                                   padding: EdgeInsets.only(bottom: 12),
                                   child: RaisedButton(
+                                    color: Theme.of(context).primaryColor,
+                                    shape: StadiumBorder(),
                                     child: Text('不使用技能'),
                                     onPressed: () {
                                       showActionConfirmDialog(-1);
@@ -499,6 +505,8 @@ class _RoomPageState extends State<RoomPage> {
                                 Padding(
                                   padding: EdgeInsets.only(bottom: 12),
                                   child: RaisedButton(
+                                    color: Theme.of(context).primaryColor,
+                                    shape: StadiumBorder(),
                                     child: Text('查看昨晚信息'),
                                     onPressed: () {
                                       showLastNightConfirmDialog();
@@ -509,6 +517,8 @@ class _RoomPageState extends State<RoomPage> {
                                 Padding(
                                   padding: EdgeInsets.only(bottom: 12),
                                   child: RaisedButton(
+                                    color: Theme.of(context).primaryColor,
+                                    shape: StadiumBorder(),
                                     child: Text('查看身份'),
                                     onPressed: () {
                                       showRoleCardDialog();
@@ -516,7 +526,8 @@ class _RoomPageState extends State<RoomPage> {
                                   ),
                                 ),
                             ]),
-                          )
+                          ),
+                          SizedBox(height: 12)
                         ],
                       );
 

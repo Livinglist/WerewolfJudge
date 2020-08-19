@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:werewolfjudge/model/psychic.dart';
-import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
 import 'package:werewolfjudge/resource/firestore_provider.dart';
+import 'package:werewolfjudge/resource/constants.dart';
 
 import 'template.dart';
 import 'role.dart';

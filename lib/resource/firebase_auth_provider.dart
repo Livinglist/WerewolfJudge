@@ -5,20 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-const String isSelfKey = 'isSelf';
-const String usersKey = 'users';
-const String messagesKey = 'messages';
-const String postsKey = 'post';
-const String chatsKey = 'chats';
-const String senderIdKey = 'sender';
-const String msgKey = 'messages';
-const String timestampKey = 'timestamp';
-const String emailKey = 'email';
-const String passwordKey = 'password';
-const String pwKey = 'password';
-const String msgTextKey = 'text';
-const String userNameKey = 'userName';
+import 'constants.dart';
 
 enum SignInMethod { apple, google, phoneNumber }
 
@@ -184,7 +171,6 @@ class FirebaseAuthProvider {
     var password = email;
 
     return firebaseAuth.signInWithEmailAndPassword(email: email, password: email).then((authResult) {
-      var firebaseUser = authResult.user;
 
       return authResult.user;
     }, onError: (Object error) {
@@ -208,7 +194,6 @@ class FirebaseAuthProvider {
     var password = phoneNumber;
 
     return firebaseAuth.signInWithCredential(authCredential).then((authResult) {
-      var firebaseUser = authResult.user;
 
       return authResult.user;
     }, onError: (Object error) {

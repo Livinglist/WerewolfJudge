@@ -8,22 +8,9 @@ import 'package:werewolfjudge/model/template.dart';
 import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
 
 import 'firebase_auth_provider.dart';
+import 'constants.dart';
 
 export 'package:werewolfjudge/model/room.dart';
-
-const String rooms = 'rooms';
-const String roomStatusKey = 'roomStatus';
-const String timestamp = 'timestamp';
-const String totalSeats = 'totalSeats';
-const String hostUidKey = 'hostUid';
-const String roomStatus = 'roomStatus';
-const String playersKey = 'players';
-const String rolesKey = 'roles';
-const String actionsKey = 'actions';
-const String currentActionerIndexKey = 'currentActionerIndex';
-const String hasPosionKey = 'hasPoison';
-const String hasAntidoteKey = 'hasAntidote';
-const String luckySonVerificationsCountKey = 'luckySonVerificationsCount';
 
 class FirestoreProvider {
   static final instance = FirestoreProvider._();
@@ -52,14 +39,14 @@ class FirestoreProvider {
       docRef = Firestore.instance.collection(rooms).document(roomNum);
       docSnap = await docRef.get();
     } while (docSnap.exists &&
-        (DateTime.fromMillisecondsSinceEpoch(docSnap.data[timestamp]).toLocal().difference(DateTime.now()).inHours <= 2 ||
+        (DateTime.fromMillisecondsSinceEpoch(docSnap.data[timestampKey]).toLocal().difference(DateTime.now()).inHours <= 2 ||
             RoomStatus.values.elementAt(docSnap.data[roomStatusKey]) != RoomStatus.terminated));
 
     docRef.delete().whenComplete(() => docRef.setData({
           actionsKey: {},
-          hasPosionKey: true,
+          hasPoisonKey: true,
           hasAntidoteKey: true,
-          timestamp: DateTime.now().toUtc().millisecondsSinceEpoch,
+          timestampKey: DateTime.now().toUtc().millisecondsSinceEpoch,
           hostUidKey: uid,
           roomStatus: RoomStatus.seating.index,
           rolesKey: template.roles.map((e) => Player.roleToIndex(e)).toList(),
@@ -80,7 +67,7 @@ class FirestoreProvider {
   Future<bool> checkRoom(String roomNum) async {
     return Firestore.instance.collection(rooms).document(roomNum).get().then((value) {
       if (value.exists == false) return false;
-      if (DateTime.fromMillisecondsSinceEpoch(value.data[timestamp]).toLocal().difference(DateTime.now()).inHours >= 2) return false;
+      if (DateTime.fromMillisecondsSinceEpoch(value.data[timestampKey]).toLocal().difference(DateTime.now()).inHours >= 2) return false;
 
       SharedPreferencesProvider.instance.setLastRoom(roomNum);
 
@@ -103,8 +90,6 @@ class FirestoreProvider {
     DocumentReference docRef = Firestore.instance.collection(rooms).document(roomNumber);
     DocumentSnapshot docSnap = await docRef.get();
     String playerUid = await FirebaseAuthProvider.instance.currentUser.then((value) => value.uid);
-
-    List<Player> playersSeated = [];
 
     if (docSnap.data[playersKey][seatNumber.toString()] != null) {
       return -1;
@@ -170,11 +155,11 @@ class FirestoreProvider {
     var timestamp = docSnap.data[timestampKey];
     var currentActionerIndex = docSnap.data[currentActionerIndexKey] ?? 0;
 
-    var hasPoison = docSnap.data[hasPosionKey] ?? true;
+    var hasPoison = docSnap.data[hasPoisonKey] ?? true;
     var hasAntidote = docSnap.data[hasAntidoteKey] ?? true;
 
-    ///Todo: Currently for experiment, support only one template. Add support for other template.
     Room room = Room.from(
+        timestamp: timestamp,
         actions: actions,
         hostUid: hostUid,
         roomNumber: roomNumber,
