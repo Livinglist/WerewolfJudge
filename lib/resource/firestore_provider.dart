@@ -20,10 +20,10 @@ class FirestoreProvider {
   FirestoreProvider._();
 
   Future<String> fetchPlayerDisplayName(String uid) async {
-    DocumentReference docRef = Firestore.instance.collection(usersKey).document(uid);
+    DocumentReference docRef = FirebaseFirestore.instance.collection(usersKey).doc(uid);
     DocumentSnapshot docSnap = await docRef.get();
 
-    if (docSnap.exists) return docSnap[userNameKey];
+    if (docSnap.exists) return docSnap.data()[userNameKey];
 
     return '无名氏';
   }
@@ -36,13 +36,13 @@ class FirestoreProvider {
 
     do {
       roomNum = generateRoomNumber();
-      docRef = Firestore.instance.collection(rooms).document(roomNum);
+      docRef = FirebaseFirestore.instance.collection(rooms).doc(roomNum);
       docSnap = await docRef.get();
     } while (docSnap.exists &&
-        (DateTime.fromMillisecondsSinceEpoch(docSnap.data[timestampKey]).toLocal().difference(DateTime.now()).inHours <= 2 ||
-            RoomStatus.values.elementAt(docSnap.data[roomStatusKey]) != RoomStatus.terminated));
+        (DateTime.fromMillisecondsSinceEpoch(docSnap.data()[timestampKey]).toLocal().difference(DateTime.now()).inHours <= 2 ||
+            RoomStatus.values.elementAt(docSnap.data()[roomStatusKey]) != RoomStatus.terminated));
 
-    docRef.delete().whenComplete(() => docRef.setData({
+    docRef.delete().whenComplete(() => docRef.set({
           actionsKey: {},
           hasPoisonKey: true,
           hasAntidoteKey: true,
@@ -65,9 +65,9 @@ class FirestoreProvider {
 
   ///Check whether or not the room number is valid.
   Future<bool> checkRoom(String roomNum) async {
-    return Firestore.instance.collection(rooms).document(roomNum).get().then((value) {
+    return FirebaseFirestore.instance.collection(rooms).doc(roomNum).get().then((value) {
       if (value.exists == false) return false;
-      if (DateTime.fromMillisecondsSinceEpoch(value.data[timestampKey]).toLocal().difference(DateTime.now()).inHours >= 2) return false;
+      if (DateTime.fromMillisecondsSinceEpoch(value.data()[timestampKey]).toLocal().difference(DateTime.now()).inHours >= 2) return false;
 
       SharedPreferencesProvider.instance.setLastRoom(roomNum);
 
@@ -76,59 +76,63 @@ class FirestoreProvider {
   }
 
   Future<void> terminateRoom(String roomNum) async {
-    var docRef = Firestore.instance.collection(rooms).document(roomNum);
+    var docRef = FirebaseFirestore.instance.collection(rooms).doc(roomNum);
 
-    return docRef.setData({roomStatusKey: RoomStatus.terminated.index}, merge: true);
+    return docRef.set({roomStatusKey: RoomStatus.terminated.index}, SetOptions(merge: true));
   }
 
   Stream<Room> fetchRoom(String roomNum) {
     currentRoomNumber = roomNum;
-    return Firestore.instance.collection(rooms).document(roomNum).snapshots().transform<Room>(StreamTransformer.fromHandlers(handleData: handleDate));
+    return FirebaseFirestore.instance
+        .collection(rooms)
+        .doc(roomNum)
+        .snapshots()
+        .transform<Room>(StreamTransformer.fromHandlers(handleData: handleDate));
   }
 
   Future<int> takeSeat(String roomNumber, int seatNumber, [int currentSeatNumber]) async {
-    DocumentReference docRef = Firestore.instance.collection(rooms).document(roomNumber);
+    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(roomNumber);
     DocumentSnapshot docSnap = await docRef.get();
-    String playerUid = await FirebaseAuthProvider.instance.currentUser.then((value) => value.uid);
+    String playerUid = FirebaseAuthProvider.instance.currentUser.uid;
 
-    if (docSnap.data[playersKey][seatNumber.toString()] != null) {
+    if (docSnap.data()[playersKey][seatNumber.toString()] != null) {
       return -1;
     }
 
-    int roleIndex = docSnap.data[rolesKey][seatNumber];
+    int roleIndex = docSnap.data()[rolesKey][seatNumber];
     Role role = Player.indexToRole(roleIndex);
 
     if (currentSeatNumber != null) {
-      return docRef.setData({
+      return docRef.set({
         playersKey: {
           seatNumber.toString(): Player(uid: playerUid, seatNumber: seatNumber, role: role).toMap(),
           currentSeatNumber.toString(): null,
         },
-      }, merge: true).then((value) => 0);
+      }, SetOptions(merge: true)).then((value) => 0);
     } else {
-      return docRef.setData({
+      return docRef.set({
         playersKey: {
           seatNumber.toString(): Player(uid: playerUid, seatNumber: seatNumber, role: role).toMap(),
         },
-      }, merge: true).then((value) => 0);
+      }, SetOptions(merge: true)).then((value) => 0);
     }
   }
 
   Future<int> leaveSeat(String roomNumber, int seatNumber) async {
-    DocumentReference docRef = Firestore.instance.collection(rooms).document(roomNumber);
+    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(roomNumber);
     DocumentSnapshot docSnap = await docRef.get();
 
-    if (docSnap.data[playersKey][seatNumber.toString()] == null) {
+    if (docSnap.data()[playersKey][seatNumber.toString()] == null) {
       return -1;
     }
 
     print("the seat number is $seatNumber");
 
-    return docRef.setData({
+    return docRef.set({
       playersKey: {
         seatNumber.toString(): null,
       },
-    }, merge: true).then((value) => 0);
+    }, SetOptions(merge: true)).then((value) => 0);
   }
 
   static String generateRoomNumber() {
@@ -143,20 +147,21 @@ class FirestoreProvider {
 
   static void handleDate(DocumentSnapshot docSnap, Sink sink) {
     print("asd1");
-    var actions = (docSnap.data[actionsKey] as Map<String, dynamic>)
-        .map((key, value) => MapEntry(Player.indexToRole(int.parse(key)).runtimeType, value as int));
+    var data = docSnap.data();
+    var actions =
+        (data[actionsKey] as Map<String, dynamic>).map((key, value) => MapEntry(Player.indexToRole(int.parse(key)).runtimeType, value as int));
     print("asd2");
-    var roomNumber = docSnap.documentID;
-    var roomStatus = RoomStatus.values.elementAt(docSnap.data[roomStatusKey] ?? 0);
-    var hostUid = docSnap.data[hostUidKey];
-    var roles = (docSnap.data[rolesKey]).map((e) => Player.indexToRole(e)).toList();
-    var players = (docSnap.data[playersKey] as Map).map((k, e) => MapEntry(int.parse(k), e == null ? null : Player.fromMap(e)));
+    var roomNumber = docSnap.id;
+    var roomStatus = RoomStatus.values.elementAt(data[roomStatusKey] ?? 0);
+    var hostUid = data[hostUidKey];
+    var roles = (data[rolesKey]).map((e) => Player.indexToRole(e)).toList();
+    var players = (data[playersKey] as Map).map((k, e) => MapEntry(int.parse(k), e == null ? null : Player.fromMap(e)));
     var template = CustomTemplate.from(roles: roles);
-    var timestamp = docSnap.data[timestampKey];
-    var currentActionerIndex = docSnap.data[currentActionerIndexKey] ?? 0;
+    var timestamp = data[timestampKey];
+    var currentActionerIndex = data[currentActionerIndexKey] ?? 0;
 
-    var hasPoison = docSnap.data[hasPoisonKey] ?? true;
-    var hasAntidote = docSnap.data[hasAntidoteKey] ?? true;
+    var hasPoison = data[hasPoisonKey] ?? true;
+    var hasAntidote = data[hasAntidoteKey] ?? true;
 
     Room room = Room.from(
         timestamp: timestamp,
@@ -188,42 +193,42 @@ class FirestoreProvider {
   }
 
   void prepare() {
-    DocumentReference docRef = Firestore.instance.collection(rooms).document(currentRoomNumber);
+    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
 
-    docRef.setData({roomStatusKey: RoomStatus.seated.index}, merge: true);
+    docRef.set({roomStatusKey: RoomStatus.seated.index}, SetOptions(merge: true));
   }
 
   void startGame() {
-    DocumentReference docRef = Firestore.instance.collection(rooms).document(currentRoomNumber);
+    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
 
-    docRef.setData({roomStatusKey: RoomStatus.ongoing.index, currentActionerIndexKey: 0}, merge: true);
+    docRef.set({roomStatusKey: RoomStatus.ongoing.index, currentActionerIndexKey: 0}, SetOptions(merge: true));
   }
 
   void performAction(Role role, int targetSeat, int currentActionerIndex, {bool usePoison = false}) {
-    DocumentReference docRef = Firestore.instance.collection(rooms).document(currentRoomNumber);
+    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
 
     if (targetSeat == null) {
-      docRef.setData({currentActionerIndexKey: currentActionerIndex}, merge: true);
+      docRef.set({currentActionerIndexKey: currentActionerIndex}, SetOptions(merge: true));
     } else {
-      docRef.setData({
+      docRef.set({
         actionsKey: {
           Player.roleToIndex(role).toString(): targetSeat,
         },
         currentActionerIndexKey: currentActionerIndex
-      }, merge: true);
+      }, SetOptions(merge: true));
     }
   }
 
   Future<void> checkInForLuckySonVerifications({int myIndex, int totalPlayers, int currentActionerIndex}) async {
-    DocumentReference docRef = Firestore.instance.collection(rooms).document(currentRoomNumber);
+    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
     DocumentSnapshot docSnap = await docRef.get();
 
-    var count = docSnap.data[luckySonVerificationsCountKey];
+    var count = docSnap.data()[luckySonVerificationsCountKey];
 
     if (count != null && count + 1 == totalPlayers)
-      docRef.setData({currentActionerIndexKey: currentActionerIndex}, merge: true);
+      docRef.set({currentActionerIndexKey: currentActionerIndex}, SetOptions(merge: true));
     else
-      docRef.setData({luckySonVerificationsCountKey: FieldValue.increment(1)}, merge: true);
+      docRef.set({luckySonVerificationsCountKey: FieldValue.increment(1)}, SetOptions(merge: true));
   }
 
   Future<String> getAvatar(String uid) async {

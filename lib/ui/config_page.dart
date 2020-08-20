@@ -255,11 +255,11 @@ class _ConfigPageState extends State<ConfigPage> {
 
                 template = CustomTemplate.newGame(roles: roles);
 
-                FirebaseAuthProvider.instance.currentUser.then((user) {
-                  FirestoreProvider.instance.newRoom(uid: user.uid, template: template).then((roomNumber) {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: roomNumber)));
-                  });
+                var user = FirebaseAuthProvider.instance.currentUser;
+
+                FirestoreProvider.instance.newRoom(uid: user.uid, template: template).then((roomNumber) {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: roomNumber)));
                 });
               },
             )

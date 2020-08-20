@@ -20,12 +20,12 @@ dependencies:
   flutter:
     sdk: flutter
   audioplayers: 0.15.1
-  firebase_core: ^0.4.0+9
+  firebase_core: ^0.5.0
   apple_sign_in: ^0.1.0
   font_awesome_flutter: 8.8.1
-  firebase_auth: 0.16.1
+  firebase_auth: 0.18.0+1
   google_sign_in: 4.5.1
-  cloud_firestore: 0.13.7
+  cloud_firestore: 0.14.0+1
   shared_preferences: 0.5.8
   pin_code_fields: 4.0.0
   wakelock: 0.1.4+2
@@ -33,7 +33,7 @@ dependencies:
   url_launcher: 5.5.0
   flutter_signin_button: 1.0.0
   image_cropper: 1.2.3
-  firebase_storage: 3.1.6
+  firebase_storage: 4.0.0
   path_provider: 1.6.11
   image_picker: 0.6.7+4
   transparent_image: 1.0.0

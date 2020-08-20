@@ -52,13 +52,9 @@ class _MainPageState extends State<MainPage> {
             TextSpan(text: '法官')
           ]))),
       body: StreamBuilder(
-        stream: FirebaseAuth.instance.onAuthStateChanged,
-        builder: (_, AsyncSnapshot<FirebaseUser> snapshot) {
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (_, AsyncSnapshot<User> snapshot) {
           var user = snapshot.data;
-          String userName;
-          if (user != null) {
-            userName = user.displayName ?? user.uid;
-          }
 
           return SingleChildScrollView(
             child: Column(children: <Widget>[
@@ -103,7 +99,19 @@ class _MainPageState extends State<MainPage> {
                                 SizedBox(
                                   width: 12,
                                 ),
-                                Text(user == null ? "登陆" : userName),
+                                if (user == null) Text("登陆"),
+                                if (user != null)
+                                  FutureBuilder(
+                                    future: FirestoreProvider.instance.fetchPlayerDisplayName(user.uid),
+                                    builder: (_, snapshot) {
+                                      if (snapshot.hasData) {
+                                        userName ??= snapshot.data;
+
+                                        return Text(userName);
+                                      }
+                                      return Container();
+                                    },
+                                  ),
                               ],
                             )),
                         decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
@@ -359,8 +367,6 @@ class _MainPageState extends State<MainPage> {
                           FirebaseAuthProvider.instance.changeName(name);
                           Navigator.pop(context);
 
-                          ///It is not the best practice to update the user name this way, Im doing it this way
-                          ///because FirebaseAuth.reload() does not emmit new event to [onAuthStateChanged]
                           setState(() {
                             userName = name;
                           });
@@ -698,7 +704,7 @@ class _MainPageState extends State<MainPage> {
     if (croppedFile == null) return null;
 
     var bytes = await croppedFile.readAsBytes();
-    var user = await FirebaseAuthProvider.instance.currentUser;
+    var user = FirebaseAuthProvider.instance.currentUser;
 
     return FirestoreProvider.instance.uploadAvatar(user.uid, bytes);
   }

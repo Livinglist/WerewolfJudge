@@ -1,7 +1,6 @@
 import 'package:apple_sign_in/apple_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,7 +11,7 @@ enum SignInMethod { apple, google, phoneNumber }
 class FirebaseAuthProvider {
   static final instance = FirebaseAuthProvider._();
 
-  Future<FirebaseUser> get currentUser => FirebaseAuth.instance.currentUser();
+  User get currentUser => FirebaseAuth.instance.currentUser;
 
   FirebaseAuthProvider._();
 
@@ -22,31 +21,31 @@ class FirebaseAuthProvider {
     ],
   );
 
-  Future uploadUser(FirebaseUser firebaseUser) async {
-    return Firestore.instance.collection('users').document(firebaseUser.uid).setData({
+  Future uploadUser(User firebaseUser) async {
+    return FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).set({
       'email': firebaseUser.email,
     });
   }
 
-  Future<FirebaseUser> registerNewUser(String email, String password) async {
-    return FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password).then((AuthResult authResult) {
+  Future<User> registerNewUser(String email, String password) async {
+    return FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password).then((UserCredential cred) {
       //verify email address
-      authResult.user.sendEmailVerification();
+      cred.user.sendEmailVerification();
 
       saveEmailAndPassword(email, password);
 
-      Firestore.instance.collection(usersKey).document(authResult.user.uid).setData({});
-      return authResult.user;
+      FirebaseFirestore.instance.collection(usersKey).doc(cred.user.uid).set({});
+      return cred.user;
     });
   }
 
-  Future<FirebaseUser> signInUser(String email, String password) async {
-    return FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password).then((AuthResult authResult) async {
-      if (authResult.user.isEmailVerified || true) {
-        var firebaseUser = authResult.user;
+  Future<User> signInUser(String email, String password) async {
+    return FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password).then((UserCredential cred) async {
+      if (cred.user.emailVerified || true) {
+        var firebaseUser = cred.user;
         return firebaseUser;
       } else {
-        var firebaseUser = authResult.user;
+        var firebaseUser = cred.user;
         return firebaseUser;
         // return Future.value(null);
       }
@@ -66,8 +65,8 @@ class FirebaseAuthProvider {
     print(email);
     if (email != null && password != null) {
       print(email);
-      return FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password).then((AuthResult authResult) {
-        return authResult.user;
+      return FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password).then((UserCredential cred) {
+        return cred.user;
       }).catchError((_) {});
     } else {
       return Future.value(null);
@@ -85,7 +84,7 @@ class FirebaseAuthProvider {
     FirebaseAuth.instance.sendPasswordResetEmail(email: email);
   }
 
-  Future<FirebaseUser> signInApple() async {
+  Future<User> signInApple() async {
     var firebaseAuth = FirebaseAuth.instance;
     var sharedPrefs = await SharedPreferences.getInstance();
 
@@ -107,13 +106,13 @@ class FirebaseAuthProvider {
           password = sharedPrefs.getString(passwordKey);
 
           if (email == null) {
-            var snapshot = await Firestore.instance.collection('appleIdToEmail').document(userId).get();
-            email = snapshot.data[emailKey];
-            password = snapshot.data[passwordKey];
+            var snapshot = await FirebaseFirestore.instance.collection('appleIdToEmail').doc(userId).get();
+            email = snapshot.data()[emailKey];
+            password = snapshot.data()[passwordKey];
           }
 
-          return firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((authResult) {
-            return authResult.user;
+          return firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((userCred) {
+            return userCred.user;
           }, onError: (PlatformException error) {
             ///TODO: The problem is that if names are null, email is going to be null as well.
             if (error.code == 'ERROR_USER_NOT_FOUND') {
@@ -137,7 +136,7 @@ class FirebaseAuthProvider {
 
                   return firebaseUser;
                 }).whenComplete(() {
-                  Firestore.instance.collection('appleIdToEmail').document(userId).setData({
+                  FirebaseFirestore.instance.collection('appleIdToEmail').doc(userId).set({
                     'email': email,
                     'password': password,
                   });
@@ -156,7 +155,7 @@ class FirebaseAuthProvider {
     }
   }
 
-  Future<FirebaseUser> signInGoogle() async {
+  Future<User> signInGoogle() async {
     var firebaseAuth = FirebaseAuth.instance;
 
     var googleUser = await googleSignIn.signIn().then((value) {
@@ -170,9 +169,8 @@ class FirebaseAuthProvider {
     var email = googleUser.email;
     var password = email;
 
-    return firebaseAuth.signInWithEmailAndPassword(email: email, password: email).then((authResult) {
-
-      return authResult.user;
+    return firebaseAuth.signInWithEmailAndPassword(email: email, password: email).then((cred) {
+      return cred.user;
     }, onError: (Object error) {
       if (error is PlatformException) {
         if (error.code == "ERROR_USER_NOT_FOUND") {
@@ -187,15 +185,14 @@ class FirebaseAuthProvider {
     });
   }
 
-  Future<FirebaseUser> signInPhoneNumber(String phoneNumber, AuthCredential authCredential) async {
+  Future<User> signInPhoneNumber(String phoneNumber, AuthCredential authCredential) async {
     var firebaseAuth = FirebaseAuth.instance;
 
     var email = phoneNumber;
     var password = phoneNumber;
 
-    return firebaseAuth.signInWithCredential(authCredential).then((authResult) {
-
-      return authResult.user;
+    return firebaseAuth.signInWithCredential(authCredential).then((cred) {
+      return cred.user;
     }, onError: (Object error) {
       if (error is PlatformException) {
         if (error.code == "ERROR_USER_NOT_FOUND") {
@@ -212,18 +209,10 @@ class FirebaseAuthProvider {
     });
   }
 
-  Future changeName(String name) async {
-    FirebaseAuth.instance.currentUser().then((user) {
-      UserUpdateInfo updateInfo = UserUpdateInfo();
-      updateInfo.displayName = name;
-
-      Firestore.instance.collection(usersKey).document(user.uid).setData({userNameKey: name});
-
-      user.updateProfile(updateInfo).then((_) {
-        debugPrint("Reloading user data.");
-        user.reload();
-      });
-    });
+  Future changeName(String name) {
+    this.currentUser.updateProfile(displayName: name);
+    this.currentUser.reload();
+    return FirebaseFirestore.instance.collection(usersKey).doc(this.currentUser.uid).set({userNameKey: name});
   }
 
   ///Store the email and password in shared preferences

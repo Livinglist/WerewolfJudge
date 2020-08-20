@@ -110,24 +110,7 @@ class _CodeVerificationPageState extends State<CodeVerificationPage> {
 
   void verifyCode(String smsCode) {
     debugPrint("The code is $smsCode");
-    AuthCredential authCredential = PhoneAuthProvider.getCredential(verificationId: this.verificationId, smsCode: smsCode);
-
-//    firebaseAuth.signInWithCredential(authCredential).then((firebaseUser) {
-//      Firestore firestore = Firestore.instance;
-//      firestore.collection('users').document(firebaseUser.uid).get().then((docSnap) async {
-//        if (docSnap.exists) {
-//          ///the user already exists in database, so not the first time user
-//          Navigator.pushNamedAndRemoveUntil(context, '/Home', (_) => false);
-//        } else {
-//          ///if this is the first time the use signs in to the app, then user needs to complete his/her profile
-//          var prefs = await SharedPreferences.getInstance();
-//          prefs.setString(uidKey, firebaseUser.uid);
-//          Navigator.pushNamedAndRemoveUntil(context, '/Profile', (_) => false);
-//        }
-//      });
-//    }).catchError((e) {
-//      verCodeInputFieldKey.currentState.reset();
-//    });
+    AuthCredential authCredential = PhoneAuthProvider.credential(verificationId: this.verificationId, smsCode: smsCode);
 
     FirebaseAuthProvider.instance.signInPhoneNumber(widget.phoneNumber, authCredential).then((value) {
       if (value == null) {
@@ -143,7 +126,7 @@ class _CodeVerificationPageState extends State<CodeVerificationPage> {
     var phoneNumber = widget.phoneNumber;
     final PhoneVerificationCompleted phoneVerificationCompleted = (AuthCredential authCredential) {};
 
-    final PhoneVerificationFailed phoneVerificationFailed = (AuthException authExp) {
+    final PhoneVerificationFailed phoneVerificationFailed = (FirebaseAuthException authExp) {
       print(authExp.message);
     };
 
