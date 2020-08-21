@@ -30,6 +30,7 @@ class RoomPage extends StatefulWidget {
 class _RoomPageState extends State<RoomPage> {
   final audioPlayer = AudioPlayer();
   final endingDuration = Duration(seconds: 0);
+  final scaffoldKey = GlobalKey<ScaffoldState>();
 
   ///Reserved for Magician.
   int anotherIndex;
@@ -106,6 +107,7 @@ class _RoomPageState extends State<RoomPage> {
     return WillPopScope(
         onWillPop: onWillPop,
         child: Scaffold(
+          key: scaffoldKey,
             appBar: AppBar(title: Text('房间${widget.roomNumber}')),
             body: StreamBuilder(
               stream: FirestoreProvider.instance.fetchRoom(widget.roomNumber),
@@ -368,30 +370,30 @@ class _RoomPageState extends State<RoomPage> {
                                                         children: <Widget>[
                                                           Positioned.fill(
                                                               child: ClipRRect(
-                                                                borderRadius: BorderRadius.circular(13),
-                                                                child: FadeInImage.memoryNetwork(
-                                                                  placeholder: kTransparentImage,
-                                                                  image: url,
-                                                                  fit: BoxFit.cover,
-                                                                  width: 26,
-                                                                  height: 26,
-                                                                ),
-                                                              )),
+                                                            borderRadius: BorderRadius.circular(13),
+                                                            child: FadeInImage.memoryNetwork(
+                                                              placeholder: kTransparentImage,
+                                                              image: url,
+                                                              fit: BoxFit.cover,
+                                                              width: 26,
+                                                              height: 26,
+                                                            ),
+                                                          )),
                                                           Positioned.fill(
                                                               child: ClipRRect(
-                                                                borderRadius: BorderRadius.circular(13),
-                                                                child: BackdropFilter(
-                                                                    filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-                                                                    child: Container(
-                                                                        width: 26,
-                                                                        height: 26,
-                                                                        decoration: BoxDecoration(
-                                                                            color: ((showWolves && room.players[i].role is Wolf) ||
+                                                            borderRadius: BorderRadius.circular(13),
+                                                            child: BackdropFilter(
+                                                                filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                                                                child: Container(
+                                                                    width: 26,
+                                                                    height: 26,
+                                                                    decoration: BoxDecoration(
+                                                                        color: ((showWolves && room.players[i].role is Wolf) ||
                                                                                 ((anotherIndex ?? -1) == i))
-                                                                                ? Colors.red.shade400.withOpacity(0.8)
-                                                                                : Colors.grey.shade200.withOpacity(0.5)),
-                                                                        child: Container())),
-                                                              )),
+                                                                            ? Colors.red.shade400.withOpacity(0.8)
+                                                                            : Colors.grey.shade200.withOpacity(0.5)),
+                                                                    child: Container())),
+                                                          )),
                                                         ],
                                                       );
                                                     }
@@ -518,6 +520,21 @@ class _RoomPageState extends State<RoomPage> {
                                 child: Text('查看身份'),
                                 onPressed: () {
                                   showRoleCardDialog();
+                                },
+                              ),
+                            ),
+                          if (room.roomStatus == RoomStatus.seating && mySeatNumber != null)
+                            Padding(
+                              padding: EdgeInsets.only(bottom: 12),
+                              child: RaisedButton(
+                                color: Colors.grey,
+                                shape: StadiumBorder(),
+                                child: Text('查看身份'),
+                                onPressed: () {
+                                  scaffoldKey.currentState.showSnackBar(SnackBar(
+                                    content: Text('等待其他玩家入座'),
+                                    action: SnackBarAction(label: '好', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar()),
+                                  ));
                                 },
                               ),
                             ),

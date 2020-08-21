@@ -6,7 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'constants.dart';
 
-enum SignInMethod { apple, google, phoneNumber }
+enum SignInMethod { apple, google, phoneNumber, anonymously }
 
 class FirebaseAuthProvider {
   static final instance = FirebaseAuthProvider._();
@@ -32,8 +32,6 @@ class FirebaseAuthProvider {
       //verify email address
       cred.user.sendEmailVerification();
 
-      saveEmailAndPassword(email, password);
-
       FirebaseFirestore.instance.collection(usersKey).doc(cred.user.uid).set({});
       return cred.user;
     });
@@ -55,9 +53,8 @@ class FirebaseAuthProvider {
     });
   }
 
-  @Deprecated("FirebaseAuth will automatically sign in the user.")
-
   ///Sign in user silently if previously signed in.
+  @Deprecated("FirebaseAuth will automatically sign in the user.")
   Future<FirebaseUser> signInUserSilently() async {
     final sharedPrefs = await SharedPreferences.getInstance();
     String email = sharedPrefs.getString('email');
@@ -114,8 +111,10 @@ class FirebaseAuthProvider {
           return firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((userCred) {
             return userCred.user;
           }, onError: (PlatformException error) {
+            print(error);
+
             ///TODO: The problem is that if names are null, email is going to be null as well.
-            if (error.code == 'ERROR_USER_NOT_FOUND') {
+            if (error.code == 'user-not-found') {
               return registerNewUser(appleIdCredential.email, appleIdCredential.email).then((value) {
                 saveEmailAndPassword(email, password);
 
@@ -130,7 +129,7 @@ class FirebaseAuthProvider {
           }, onError: (Object error) {
             ///TODO: The problem is that if names are null, email is going to be null as well.
             if (error is PlatformException) {
-              if (error.code == 'ERROR_USER_NOT_FOUND') {
+              if (error.code == 'user-not-found') {
                 return registerNewUser(appleIdCredential.email, appleIdCredential.email).then((firebaseUser) async {
                   saveEmailAndPassword(email, password);
 
@@ -159,6 +158,7 @@ class FirebaseAuthProvider {
     var firebaseAuth = FirebaseAuth.instance;
 
     var googleUser = await googleSignIn.signIn().then((value) {
+      print("Google Sign In: $value");
       return value;
     }, onError: (_) {
       return null;
@@ -170,10 +170,12 @@ class FirebaseAuthProvider {
     var password = email;
 
     return firebaseAuth.signInWithEmailAndPassword(email: email, password: email).then((cred) {
+      print("Firebase Sign In: ${cred.user}");
       return cred.user;
     }, onError: (Object error) {
+      print("Firebase Sign In Error");
       if (error is PlatformException) {
-        if (error.code == "ERROR_USER_NOT_FOUND") {
+        if (error.code == "user-not-found") {
           return registerNewUser(email, password).then((firebaseUser) {
             saveEmailAndPassword(email, password);
 
@@ -181,6 +183,18 @@ class FirebaseAuthProvider {
           });
         }
       }
+      return null;
+    });
+  }
+
+  Future<User> signInAnonymously() async {
+    var firebaseAuth = FirebaseAuth.instance;
+
+    return firebaseAuth.signInAnonymously().then((cred) {
+      print("Firebase Sign In: ${cred.user}");
+      FirebaseFirestore.instance.collection(usersKey).doc(cred.user.uid).set({}, SetOptions(merge: true));
+      return cred.user;
+    }, onError: (Object error) {
       return null;
     });
   }
@@ -195,7 +209,7 @@ class FirebaseAuthProvider {
       return cred.user;
     }, onError: (Object error) {
       if (error is PlatformException) {
-        if (error.code == "ERROR_USER_NOT_FOUND") {
+        if (error.code == "user-not-found") {
           return registerNewUser(email, password).then((firebaseUser) {
             saveEmailAndPassword(email, password);
 

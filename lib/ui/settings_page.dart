@@ -63,7 +63,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             applicationName: "萌狼",
-            applicationVersion: "v0.0.5",
+            applicationVersion: "v0.0.7",
             aboutBoxChildren: <Widget>[
               RaisedButton(
                 onPressed: () {

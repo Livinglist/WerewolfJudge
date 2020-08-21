@@ -23,7 +23,8 @@ class FirestoreProvider {
     DocumentReference docRef = FirebaseFirestore.instance.collection(usersKey).doc(uid);
     DocumentSnapshot docSnap = await docRef.get();
 
-    if (docSnap.exists) return docSnap.data()[userNameKey];
+
+    if (docSnap.exists) return docSnap.data()[userNameKey]??'无名氏';
 
     return '无名氏';
   }

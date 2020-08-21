@@ -241,7 +241,7 @@ class _MainPageState extends State<MainPage> {
         return Align(
           alignment: Alignment.bottomCenter,
           child: Container(
-            height: 240,
+            height: 300,
             width: double.infinity,
             //child: SizedBox.expand(child: FlutterLogo()),
             margin: EdgeInsets.only(top: 120, left: 12, right: 12, bottom: 0),
@@ -265,9 +265,14 @@ class _MainPageState extends State<MainPage> {
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     child: Transform.scale(
                       scale: 1.24,
-                      child: SignInButton(Buttons.Google, onPressed: () {
-                        Navigator.pop(context, SignInMethod.google);
-                      }),
+                      child: SignInButtonBuilder(
+                        text: 'Sign in with Google',
+                        icon: FontAwesomeIcons.google,
+                        onPressed: () {
+                          Navigator.pop(context, SignInMethod.google);
+                        },
+                        backgroundColor: Colors.blue,
+                      ),
                     )),
                 SizedBox(height: 12),
                 Padding(
@@ -281,6 +286,20 @@ class _MainPageState extends State<MainPage> {
                           Navigator.pop(context, SignInMethod.phoneNumber);
                         },
                         backgroundColor: Colors.blueGrey[700],
+                      ),
+                    )),
+                SizedBox(height: 12),
+                Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Transform.scale(
+                      scale: 1.24,
+                      child: SignInButtonBuilder(
+                        text: 'Sign in Anonymously',
+                        icon: FontAwesomeIcons.user,
+                        onPressed: () {
+                          Navigator.pop(context, SignInMethod.anonymously);
+                        },
+                        backgroundColor: Colors.orange,
                       ),
                     )),
                 SizedBox(height: 12),
@@ -299,13 +318,46 @@ class _MainPageState extends State<MainPage> {
       if (value != null) {
         switch (value) {
           case SignInMethod.apple:
-            FirebaseAuthProvider.instance.signInApple();
+            FirebaseAuthProvider.instance.signInApple().then((value) {
+              if (value != null) {
+                scaffoldKey.currentState.showSnackBar(SnackBar(
+                  content: Text('登陆成功'),
+                  action: SnackBarAction(
+                    label: '好',
+                    onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),
+                  ),
+                ));
+              }
+            });
             break;
           case SignInMethod.google:
-            FirebaseAuthProvider.instance.signInGoogle();
+            FirebaseAuthProvider.instance.signInGoogle().then((value) {
+              if (value != null) {
+                scaffoldKey.currentState.showSnackBar(SnackBar(
+                  content: Text('登陆成功'),
+                  action: SnackBarAction(
+                    label: '好',
+                    onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),
+                  ),
+                ));
+              }
+            });
             break;
           case SignInMethod.phoneNumber:
             takePhoneNumber();
+            break;
+          case SignInMethod.anonymously:
+            FirebaseAuthProvider.instance.signInAnonymously().then((value) {
+              if (value != null) {
+                scaffoldKey.currentState.showSnackBar(SnackBar(
+                  content: Text('登陆成功'),
+                  action: SnackBarAction(
+                    label: '好',
+                    onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),
+                  ),
+                ));
+              }
+            });
             break;
           default:
             throw Exception();
@@ -585,56 +637,6 @@ class _MainPageState extends State<MainPage> {
         return alert;
       },
     );
-  }
-
-  void showLoginBottomSheet() {
-    showCupertinoModalPopup<SignInMethod>(
-        context: context,
-        builder: (BuildContext context) => CupertinoActionSheet(
-              cancelButton: CupertinoActionSheetAction(
-                isDefaultAction: true,
-                child: Text('Cancel'),
-                onPressed: () {
-                  Navigator.pop(context, null);
-                },
-              ),
-              actions: <Widget>[
-                CupertinoActionSheetAction(
-                  child: Text('Apple', style: TextStyle(color: Colors.blue)),
-                  onPressed: () {
-                    Navigator.pop(context, SignInMethod.apple);
-                  },
-                ),
-                CupertinoActionSheetAction(
-                  child: Text('Gmail', style: TextStyle(color: Colors.blue)),
-                  onPressed: () {
-                    Navigator.pop(context, SignInMethod.google);
-                  },
-                ),
-                CupertinoActionSheetAction(
-                  child: Text('Phone Number', style: TextStyle(color: Colors.blue)),
-                  onPressed: () {
-                    Navigator.pop(context, SignInMethod.phoneNumber);
-                  },
-                ),
-              ],
-            )).then((value) {
-      if (value != null) {
-        switch (value) {
-          case SignInMethod.apple:
-            FirebaseAuthProvider.instance.signInApple();
-            break;
-          case SignInMethod.google:
-            FirebaseAuthProvider.instance.signInGoogle();
-            break;
-          case SignInMethod.phoneNumber:
-            takePhoneNumber();
-            break;
-          default:
-            throw Exception();
-        }
-      }
-    });
   }
 
   void showLogoutBottomSheet() {
