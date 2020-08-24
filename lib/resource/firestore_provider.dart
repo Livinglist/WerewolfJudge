@@ -244,12 +244,5 @@ class FirestoreProvider {
     final StorageUploadTask uploadTask = storageReference.putData(imageBytes);
 
     return uploadTask;
-
-//    final StreamSubscription<StorageTaskEvent> streamSubscription = uploadTask.events.listen((event) {
-//      print('EVENT ${event.type}');
-//    });
-//
-//    await uploadTask.onComplete;
-//    streamSubscription.cancel();
   }
 }

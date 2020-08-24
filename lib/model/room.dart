@@ -190,6 +190,7 @@ class Room {
 
     Set<int> deaths = {};
 
+    print('==========================');
     print("killedByWolf: $killedByWolf");
     print("killedByWitch: $killedByWitch");
     print("savedByWitch: $savedByWitch");
@@ -199,6 +200,7 @@ class Room {
     print("secondExchanged: $secondExchanged");
     print("blackTraderTarget: $blackTraderTarget");
     print("blackTraderIndex: $blackTraderIndex");
+    print('==========================');
 
     //奶死
     if (savedByWitch != null && savedByWitch == guardedByGuard) {
@@ -250,31 +252,31 @@ class Room {
       blackTraderKilledByHiddenWolf = true;
     }
 
+    String info;
     if (deaths.isEmpty) {
-      return "昨天晚上是平安夜。";
+      info = "昨天晚上是平安夜。";
+    } else {
+      info = "昨天晚上";
+
+      for (var i in deaths.toList()..sort()) {
+        info += "${i + 1}号, ";
+      }
+
+      info = info.substring(0, info.length - 2);
+      info += "玩家死亡。";
     }
-
-    String info = "昨天晚上";
-
-    for (var i in deaths.toList()..sort()) {
-      info += "${i + 1}号, ";
-    }
-
-    info = info.substring(0, info.length - 2);
-    info += "玩家死亡。";
 
     if (moderatedByModerator == nightWalker) moderatedByModerator = null;
 
-    //禁票信息
-    if (moderatedByModerator != null) {
-      if (moderatedByModerator == -1)
-        info += "\n无人被禁票";
+    if (this.template.rolesType.contains(Moderator)) {
+      if (moderatedByModerator == null)
+        info += "\n无人被禁票。";
       else
-        info += "\n${moderatedByModerator + 1}号被禁票";
+        info += "\n${moderatedByModerator + 1}号被禁票。";
     }
 
     if (blackTraderKilledByHiddenWolf) {
-      info += "\n黑查杀，隐狼变普狼";
+      info += "\n黑查杀，隐狼变普狼。";
     }
 
     return info;
