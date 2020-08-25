@@ -91,11 +91,18 @@ class Room {
 
     Type roleType = Player.indexToRoleType(roleIndex);
 
+    var killedByWitch = (actions[Witch] ?? 1) < 0 ? -1 * actions[Witch] - 1 : null;
+    String gunStatus = '你的发动状态为：可以发动';
+
+    if (killedByWitch == index) {
+      gunStatus = '你的发动状态为：不可发动';
+    }
+
     switch (roleType) {
       case Witch:
         return "女巫的毒药";
       case Hunter:
-        return "猎人的枪";
+        return "猎人的枪\n$gunStatus";
       case Seer:
         return "预言家的眼镜";
       default:
@@ -104,11 +111,11 @@ class Room {
   }
 
   bool get hunterStatus {
-    var killedByWitch = actions[Witch];
+    var killedByWitch = (actions[Witch] ?? 1) < 0 ? -1 * actions[Witch] - 1 : null;
     var linkedByWolfQueen = actions[WolfQueen];
     var nightmared = actions[Nightmare];
 
-    if (killedByWitch != null && killedByWitch < 0 && players[(killedByWitch + 1).abs()].role is Hunter) return false;
+    if (killedByWitch != null && players[killedByWitch].role is Hunter) return false;
     if (linkedByWolfQueen != null && players[linkedByWolfQueen].role is Hunter) return false;
     if (nightmared != null && players[nightmared].role is Hunter) return false;
 
@@ -116,8 +123,8 @@ class Room {
   }
 
   bool get wolfKingStatus {
-    var killedByWitch = actions[Witch];
-    if (killedByWitch != null && killedByWitch < 0 && players[(killedByWitch + 1).abs()].role is WolfKing) return false;
+    var killedByWitch = (actions[Witch] ?? 1) < 0 ? -1 * actions[Witch] - 1 : null;
+    if (killedByWitch != null && players[killedByWitch].role is WolfKing) return false;
     return true;
   }
 
@@ -215,7 +222,7 @@ class Room {
     //毒死
     if (killedByWitch != null) {
       //猎魔人不吃毒
-      if (witcherIndex == null || witcherIndex != killedByWitch) {
+      if (witcherIndex != killedByWitch) {
         deaths.add(killedByWitch);
       }
     }
@@ -334,9 +341,11 @@ class Room {
       }
 
       return players[target].role is Wolf ? "狼人" : "好人";
-    } else if (currentActionRole is Psychic)
-      return players[target].role.roleName;
-    else if (currentActionRole is WolfRobot)
+    } else if (currentActionRole is Psychic) {
+      var learntByWolfRobot = actions[WolfRobot];
+
+      return players[learntByWolfRobot].role.roleName;
+    } else if (currentActionRole is WolfRobot)
       return players[target].role.roleName;
     else if (currentActionRole is Gargoyle)
       return players[target].role.roleName;

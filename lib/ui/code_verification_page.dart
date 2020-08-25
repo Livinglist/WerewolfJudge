@@ -117,7 +117,7 @@ class _CodeVerificationPageState extends State<CodeVerificationPage> {
         errorController.add(ErrorAnimationType.shake);
         textEditingController.clear();
       } else {
-        Navigator.pop(context);
+        Navigator.pop(context, value);
       }
     });
   }

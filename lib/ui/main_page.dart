@@ -33,6 +33,9 @@ class _MainPageState extends State<MainPage> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   String userName;
 
+  ///Banner for showing sign-in progress.
+  bool shouldShowBanner = false;
+
   @override
   void initState() {
     super.initState();
@@ -58,6 +61,7 @@ class _MainPageState extends State<MainPage> {
 
           return SingleChildScrollView(
             child: Column(children: <Widget>[
+              if (shouldShowBanner) LinearProgressIndicator(),
               Padding(
                 padding: EdgeInsets.all(12),
                 child: Material(
@@ -105,7 +109,7 @@ class _MainPageState extends State<MainPage> {
                                     future: FirestoreProvider.instance.fetchPlayerDisplayName(user.uid),
                                     builder: (_, snapshot) {
                                       if (snapshot.hasData) {
-                                        userName ??= snapshot.data;
+                                        userName = snapshot.data;
 
                                         return Text(userName);
                                       }
@@ -165,12 +169,20 @@ class _MainPageState extends State<MainPage> {
                           title: '返回上局',
                           iconTitle: 'arrow-alt-circle-left',
                           onTap: () {
-                            var lastRoomNumber = getLastRoomNumber();
-                            FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
-                              if (isValid) {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: lastRoomNumber)));
-                              }
-                            });
+                            if (user == null) {
+                              scaffoldKey.currentState.hideCurrentSnackBar();
+                              scaffoldKey.currentState.showSnackBar(SnackBar(
+                                content: Text("请先登陆"),
+                                action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
+                              ));
+                            } else {
+                              var lastRoomNumber = getLastRoomNumber();
+                              FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
+                                if (isValid) {
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: lastRoomNumber)));
+                                }
+                              });
+                            }
                           }),
                     ),
                     Container(
@@ -318,52 +330,54 @@ class _MainPageState extends State<MainPage> {
       if (value != null) {
         switch (value) {
           case SignInMethod.apple:
-            FirebaseAuthProvider.instance.signInApple().then((value) {
-              if (value != null) {
-                scaffoldKey.currentState.showSnackBar(SnackBar(
-                  content: Text('登陆成功'),
-                  action: SnackBarAction(
-                    label: '好',
-                    onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),
-                  ),
-                ));
-              }
+            setState(() {
+              shouldShowBanner = true;
             });
+            FirebaseAuthProvider.instance.signInApple().then(showSignInStatus);
             break;
           case SignInMethod.google:
-            FirebaseAuthProvider.instance.signInGoogle().then((value) {
-              if (value != null) {
-                scaffoldKey.currentState.showSnackBar(SnackBar(
-                  content: Text('登陆成功'),
-                  action: SnackBarAction(
-                    label: '好',
-                    onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),
-                  ),
-                ));
-              }
+            setState(() {
+              shouldShowBanner = true;
             });
+            FirebaseAuthProvider.instance.signInGoogle().then(showSignInStatus);
             break;
           case SignInMethod.phoneNumber:
-            takePhoneNumber();
+            takePhoneNumber().then(showSignInStatus);
             break;
           case SignInMethod.anonymously:
-            FirebaseAuthProvider.instance.signInAnonymously().then((value) {
-              if (value != null) {
-                scaffoldKey.currentState.showSnackBar(SnackBar(
-                  content: Text('登陆成功'),
-                  action: SnackBarAction(
-                    label: '好',
-                    onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),
-                  ),
-                ));
-              }
+            setState(() {
+              shouldShowBanner = true;
             });
+            FirebaseAuthProvider.instance.signInAnonymously().then(showSignInStatus);
             break;
           default:
             throw Exception();
         }
       }
     });
+  }
+
+  void showSignInStatus(User user) {
+    setState(() {
+      shouldShowBanner = false;
+    });
+    if (user != null) {
+      scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('登陆成功'),
+        action: SnackBarAction(
+          label: '好',
+          onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),
+        ),
+      ));
+    } else {
+      scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('登陆失败'),
+        action: SnackBarAction(
+          label: '好',
+          onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),
+        ),
+      ));
+    }
   }
 
   Future<void> changeNameDialog(String currentName) async {
@@ -445,10 +459,10 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  Future<void> takePhoneNumber() async {
+  Future<User> takePhoneNumber() async {
     final textEditingController = TextEditingController();
 
-    showGeneralDialog<String>(
+    return showGeneralDialog<String>(
       barrierLabel: "Barrier",
       barrierDismissible: true,
       barrierColor: Colors.black.withOpacity(0.5),
@@ -473,6 +487,7 @@ class _MainPageState extends State<MainPage> {
                   child: Material(
                     color: Colors.transparent,
                     child: TextField(
+                      autofillHints: [AutofillHints.telephoneNumber],
                       controller: textEditingController,
                       keyboardType: TextInputType.number,
                       maxLengthEnforced: true,
@@ -515,9 +530,14 @@ class _MainPageState extends State<MainPage> {
           child: child,
         );
       },
-    ).then((phoneNumber) {
+    ).then<User>((phoneNumber) {
       debugPrint("The phone number is $phoneNumber");
-      if (phoneNumber != null) Navigator.push(context, MaterialPageRoute(builder: (_) => CodeVerificationPage(phoneNumber: phoneNumber)));
+      setState(() {
+        shouldShowBanner = true;
+      });
+      if (phoneNumber != null)
+        return Navigator.push<User>(context, MaterialPageRoute(builder: (_) => CodeVerificationPage(phoneNumber: phoneNumber)));
+      return null;
     });
   }
 

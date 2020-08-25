@@ -10,6 +10,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  final scaffoldKey = GlobalKey<ScaffoldState>();
   bool showArtwork, shouldVibrate = false;
 
   @override
@@ -27,13 +28,54 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       appBar: AppBar(
         title: Text('设置'),
       ),
       body: ListView(
         children: <Widget>[
+          ListTile(
+            title: Text('报告Bug'),
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                        content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        RaisedButton(
+                          child: Row(
+                            children: <Widget>[
+                              Icon(FontAwesomeIcons.github),
+                              SizedBox(
+                                width: 12,
+                              ),
+                              Text("Github"),
+                            ],
+                          ),
+                          onPressed: () => launch('https://github.com/Livinglist/WerewolfJudge/issues/new'),
+                        ),
+                        RaisedButton(
+                          child: Row(
+                            children: <Widget>[
+                              Icon(Icons.email),
+                              SizedBox(
+                                width: 12,
+                              ),
+                              Text("Email"),
+                            ],
+                          ),
+                          onPressed: onSendEmailTapped,
+                        ),
+                      ],
+                    ));
+                  });
+            },
+          ),
+          Divider(height: 0),
           Container(
-            height: 250,
+            height: 240,
             child: Center(
               child: Text("¯\\_(ツ)_/¯"),
             ),
@@ -63,7 +105,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             applicationName: "萌狼",
-            applicationVersion: "v0.0.7",
+            applicationVersion: "v0.0.8",
             aboutBoxChildren: <Widget>[
               RaisedButton(
                 onPressed: () {
@@ -98,5 +140,23 @@ class _SettingsPageState extends State<SettingsPage> {
         ],
       ),
     );
+  }
+
+  void onSendEmailTapped() async {
+    final Uri emailUri = Uri(
+        scheme: 'mailto', path: 'werewolfJudgeBug@gmail.com', queryParameters: {'subject': '什么垃圾app，又找到了一个bug！', 'body': '请大致描述bug发生的场景及激发bug的行为：'});
+
+    var res = await canLaunch(emailUri.toString());
+
+    if (res) {
+      launch(emailUri.toString());
+    } else {
+      Navigator.pop(context);
+      scaffoldKey.currentState.hideCurrentSnackBar();
+      scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('出现了未知的问题'),
+        action: SnackBarAction(label: '这真是太棒了', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar()),
+      ));
+    }
   }
 }

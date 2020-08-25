@@ -110,16 +110,18 @@ class FirebaseAuthProvider {
 
           return firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((userCred) {
             return userCred.user;
-          }, onError: (PlatformException error) {
+          }, onError: (Object error) {
             print(error);
 
             ///TODO: The problem is that if names are null, email is going to be null as well.
-            if (error.code == 'user-not-found') {
-              return registerNewUser(appleIdCredential.email, appleIdCredential.email).then((value) {
-                saveEmailAndPassword(email, password);
+            if (error is PlatformException) {
+              if (error.code == 'user-not-found') {
+                return registerNewUser(appleIdCredential.email, appleIdCredential.email).then((value) {
+                  saveEmailAndPassword(email, password);
 
-                return value;
-              });
+                  return value;
+                });
+              }
             }
             return null;
           });
@@ -130,7 +132,7 @@ class FirebaseAuthProvider {
             ///TODO: The problem is that if names are null, email is going to be null as well.
             if (error is PlatformException) {
               if (error.code == 'user-not-found') {
-                return registerNewUser(appleIdCredential.email, appleIdCredential.email).then((firebaseUser) async {
+                return registerNewUser(appleIdCredential.email, appleIdCredential.email).then((firebaseUser) {
                   saveEmailAndPassword(email, password);
 
                   return firebaseUser;
