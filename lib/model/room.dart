@@ -344,7 +344,9 @@ class Room {
     } else if (currentActionRole is Psychic) {
       var learntByWolfRobot = actions[WolfRobot];
 
-      return players[learntByWolfRobot].role.roleName;
+      var wolfRobotSeatNumber = players.values.singleWhere((element) => element.role is WolfRobot, orElse: () => null)?.seatNumber ?? -1;
+
+      return target == wolfRobotSeatNumber ? players[learntByWolfRobot].role.roleName : players[target].role.roleName;
     } else if (currentActionRole is WolfRobot)
       return players[target].role.roleName;
     else if (currentActionRole is Gargoyle)
