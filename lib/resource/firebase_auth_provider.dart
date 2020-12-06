@@ -98,7 +98,7 @@ class FirebaseAuthProvider {
         var email = appleIdCredential.email;
         var password = appleIdCredential.email;
 
-        if (appleIdCredential.email == null || (result.credential.fullName.familyName == null && result.credential.fullName.givenName == null)) {
+        if (appleIdCredential.email == null) {
           email = sharedPrefs.getString(emailKey);
           password = sharedPrefs.getString(passwordKey);
 
@@ -111,26 +111,25 @@ class FirebaseAuthProvider {
           return firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((userCred) {
             return userCred.user;
           }, onError: (Object error) {
-            print(error);
-
-            ///TODO: The problem is that if names are null, email is going to be null as well.
-            if (error is PlatformException) {
+            if (error is FirebaseAuthException) {
               if (error.code == 'user-not-found') {
-                return registerNewUser(appleIdCredential.email, appleIdCredential.email).then((value) {
+                return registerNewUser(email, password).then((value) {
                   saveEmailAndPassword(email, password);
 
                   return value;
+                }, onError: (_) {
+                  print(_);
                 });
               }
             }
+
             return null;
           });
         } else {
           return firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((authResult) {
             return authResult.user;
           }, onError: (Object error) {
-            ///TODO: The problem is that if names are null, email is going to be null as well.
-            if (error is PlatformException) {
+            if (error is FirebaseAuthException) {
               if (error.code == 'user-not-found') {
                 return registerNewUser(appleIdCredential.email, appleIdCredential.email).then((firebaseUser) {
                   saveEmailAndPassword(email, password);
