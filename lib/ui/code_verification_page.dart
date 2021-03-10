@@ -92,15 +92,15 @@ class _CodeVerificationPageState extends State<CodeVerificationPage> {
               padding: EdgeInsets.only(top: 12, left: 24, right: 24),
               child: Material(
                 color: Colors.transparent,
-                child: RaisedButton(
+                child: ElevatedButton(
                   child: Padding(
                     padding: EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 12),
                     child: Text('登陆', style: TextStyle(fontSize: 18)),
                   ),
                   onPressed: () {},
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(40),
-                  ),
+                  // shape: RoundedRectangleBorder(
+                  //   borderRadius: BorderRadius.circular(40),
+                  // ),
                 ),
               ))
         ],

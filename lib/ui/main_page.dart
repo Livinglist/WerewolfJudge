@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,9 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
@@ -82,8 +85,9 @@ class _MainPageState extends State<MainPage> {
                                   FutureBuilder(
                                     future: FirestoreProvider.instance.getAvatar(user.uid),
                                     builder: (_, AsyncSnapshot<String> urlSnapshot) {
-                                      if (urlSnapshot.hasData && urlSnapshot != null) {
+                                      if (urlSnapshot.hasData) {
                                         var url = urlSnapshot.data;
+
                                         return ClipRRect(
                                           borderRadius: BorderRadius.circular(13),
                                           child: FadeInImage.memoryNetwork(
@@ -94,12 +98,34 @@ class _MainPageState extends State<MainPage> {
                                             height: 26,
                                           ),
                                         );
+                                      } else {
+                                        String rawSvg = Jdenticon.toSvg(user.uid);
+                                        return ClipRRect(
+                                          borderRadius: BorderRadius.circular(13),
+                                          child: Stack(
+                                            children: [
+                                              Container(
+                                                height: 26,
+                                                width: 26,
+                                                color: Colors.white,
+                                              ),
+                                              SvgPicture.string(
+                                                rawSvg,
+                                                fit: BoxFit.contain,
+                                                height: 26,
+                                                width: 26,
+                                              ),
+                                            ],
+                                          )
+                                        );
                                       }
-
-                                      return Icon(FontAwesomeIcons.userCircle);
                                     },
                                   ),
-                                if (user == null) Icon(FontAwesomeIcons.userCircle),
+                                if (user == null) Container(
+                                  height: 26,
+                                  width: 26,
+                                  child: Icon(FontAwesomeIcons.userCircle),
+                                ),
                                 SizedBox(
                                   width: 12,
                                 ),
@@ -136,8 +162,8 @@ class _MainPageState extends State<MainPage> {
                           iconTitle: 'person-booth',
                           onTap: () {
                             if (user == null) {
-                              scaffoldKey.currentState.hideCurrentSnackBar();
-                              scaffoldKey.currentState.showSnackBar(SnackBar(
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content: Text("请先登陆"),
                                 action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
                               ));
@@ -152,8 +178,8 @@ class _MainPageState extends State<MainPage> {
                           iconTitle: 'concierge-bell',
                           onTap: () {
                             if (user == null) {
-                              scaffoldKey.currentState.hideCurrentSnackBar();
-                              scaffoldKey.currentState.showSnackBar(SnackBar(
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content: Text("请先登陆"),
                                 action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
                               ));
@@ -170,8 +196,8 @@ class _MainPageState extends State<MainPage> {
                           iconTitle: 'arrow-alt-circle-left',
                           onTap: () {
                             if (user == null) {
-                              scaffoldKey.currentState.hideCurrentSnackBar();
-                              scaffoldKey.currentState.showSnackBar(SnackBar(
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content: Text("请先登陆"),
                                 action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
                               ));
@@ -362,19 +388,19 @@ class _MainPageState extends State<MainPage> {
       shouldShowBanner = false;
     });
     if (user != null) {
-      scaffoldKey.currentState.showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('登陆成功'),
         action: SnackBarAction(
           label: '好',
-          onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),
+          onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
         ),
       ));
     } else {
-      scaffoldKey.currentState.showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('登陆失败'),
         action: SnackBarAction(
           label: '好',
-          onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),
+          onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
         ),
       ));
     }
@@ -409,7 +435,7 @@ class _MainPageState extends State<MainPage> {
                     color: Colors.transparent,
                     child: TextField(
                       controller: textEditingController,
-                      maxLengthEnforced: true,
+                      maxLengthEnforcement: MaxLengthEnforcement.truncateAfterCompositionEnds,
                       maxLength: 40,
                       maxLines: 1,
                       autofocus: true,
@@ -423,10 +449,15 @@ class _MainPageState extends State<MainPage> {
                     padding: EdgeInsets.only(top: 12, left: 24, right: 24),
                     child: Material(
                       color: Colors.transparent,
-                      child: RaisedButton(
+                      child: ElevatedButton(
                         child: Padding(
                           padding: EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 12),
                           child: Text('改变名称', style: TextStyle(fontSize: 18)),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(40),
+                          ),
                         ),
                         onPressed: () {
                           var name = textEditingController.text;
@@ -437,9 +468,6 @@ class _MainPageState extends State<MainPage> {
                             userName = name;
                           });
                         },
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(40),
-                        ),
                       ),
                     ))
               ],
@@ -490,7 +518,7 @@ class _MainPageState extends State<MainPage> {
                       autofillHints: [AutofillHints.telephoneNumber],
                       controller: textEditingController,
                       keyboardType: TextInputType.number,
-                      maxLengthEnforced: true,
+                      maxLengthEnforcement: MaxLengthEnforcement.truncateAfterCompositionEnds,
                       maxLength: 12,
                       maxLines: 1,
                       autofocus: true,
@@ -505,18 +533,20 @@ class _MainPageState extends State<MainPage> {
                     padding: EdgeInsets.only(top: 12, left: 24, right: 24),
                     child: Material(
                       color: Colors.transparent,
-                      child: RaisedButton(
+                      child: ElevatedButton(
                         child: Padding(
                           padding: EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 12),
                           child: Text('发送验证码', style: TextStyle(fontSize: 18)),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(40),
+                          ),
                         ),
                         onPressed: () {
                           var number = textEditingController.text.replaceAll('-', '');
                           Navigator.pop(context, number);
                         },
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(40),
-                        ),
                       ),
                     ))
               ],
@@ -637,7 +667,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   void showLoginRequestDialog() {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确定"),
       onPressed: () {
         Navigator.pop(context);
@@ -657,6 +687,38 @@ class _MainPageState extends State<MainPage> {
         return alert;
       },
     );
+  }
+
+  showDeleteAvatarDialog() {
+    Widget cancelButton = TextButton(
+        child: Text("取消"),
+        onPressed: () {
+          Navigator.pop(context);
+        });
+
+    Widget confirmButton = TextButton(
+        child: Text("确定", style: TextStyle(color: Colors.red)),
+        onPressed: () {
+          var uid = FirebaseAuthProvider.instance.currentUser.uid;
+
+          FirestoreProvider.instance.deleteAvatar(uid).then((value) {
+            setState(() {});
+          });
+        });
+
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("删除头像"),
+            content: Text("确定吗？"),
+            elevation: 8,
+            actions: [
+              cancelButton,
+              confirmButton,
+            ],
+          );
+        });
   }
 
   void showLogoutBottomSheet() {
@@ -683,12 +745,21 @@ class _MainPageState extends State<MainPage> {
                   onPressed: () async {
                     Navigator.pop(context);
                     pickAvatar().then((value) {
+                      if(value == null) return;
                       value.onComplete.then((value) {
                         setState(() {});
                       });
                     });
                   },
                 ),
+                if (FirebaseAuthProvider.instance.currentUser.uid != null)
+                  CupertinoActionSheetAction(
+                    child: Text('删除头像', style: TextStyle(color: Colors.red)),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      showDeleteAvatarDialog();
+                    },
+                  ),
                 CupertinoActionSheetAction(
                   isDefaultAction: true,
                   child: Text('登出'),
@@ -708,6 +779,8 @@ class _MainPageState extends State<MainPage> {
   Future<StorageUploadTask> pickAvatar() async {
     final picker = ImagePicker();
     final pickedFile = await picker.getImage(source: ImageSource.gallery, imageQuality: 85);
+
+    if(pickedFile == null) return null;
 
     File croppedFile = await ImageCropper.cropImage(
         sourcePath: pickedFile.path,

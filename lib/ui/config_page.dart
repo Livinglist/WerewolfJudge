@@ -140,8 +140,8 @@ class _ConfigPageState extends State<ConfigPage> {
                 var selectedEntries = selectedMap.entries.where((element) => element.value).toList();
 
                 if (selectedEntries.isEmpty) {
-                  scaffoldKey.currentState.hideCurrentSnackBar();
-                  scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('没有选择角色'), backgroundColor: Colors.red));
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('没有选择角色'), backgroundColor: Colors.red));
                   return;
                 }
 

@@ -14,6 +14,7 @@ export 'package:werewolfjudge/model/room.dart';
 
 class FirestoreProvider {
   static final instance = FirestoreProvider._();
+  static Map<String, String> avatarLinkCache = {};
 
   String currentRoomNumber;
 
@@ -233,9 +234,14 @@ class FirestoreProvider {
   }
 
   Future<String> getAvatar(String uid) async {
+    if(avatarLinkCache.containsKey(uid)) return avatarLinkCache[uid];
+
     var ref = FirebaseStorage.instance.ref().child('profile_pics/$uid');
 
-    return ref.getDownloadURL().then((value) => value, onError: (_) => null);
+    return ref.getDownloadURL().then((value) {
+      if(value != null) avatarLinkCache[uid] = value;
+      return value;
+    }, onError: (_) => null);
   }
 
   StorageUploadTask uploadAvatar(String uid, List<int> imageBytes) {
@@ -243,6 +249,14 @@ class FirestoreProvider {
 
     final StorageUploadTask uploadTask = storageReference.putData(imageBytes);
 
+    uploadTask.onComplete.then((value){
+      value.ref.getDownloadURL().then((url) => avatarLinkCache[uid] = url);
+    });
+
     return uploadTask;
+  }
+
+  Future deleteAvatar(String uid){
+    return FirebaseStorage().ref().child('profile_pics/$uid').delete().then((_) => avatarLinkCache.remove(uid));
   }
 }

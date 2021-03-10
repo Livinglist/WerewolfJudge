@@ -24,11 +24,11 @@ class _BlackTraderDialogState extends State<BlackTraderDialog> {
 
   @override
   Widget build(BuildContext context) {
-    Widget cancelButton = FlatButton(
+    Widget cancelButton = TextButton(
         child: Text("取消"),
         onPressed: widget.onCancel);
 
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text(
         "确认",
       ),

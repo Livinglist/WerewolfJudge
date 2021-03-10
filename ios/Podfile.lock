@@ -450,7 +450,7 @@ SPEC CHECKSUMS:
   abseil: 6c8eb7892aefa08d929b39f9bb108e5367e3228f
   AppAuth: 31bcec809a638d7bd2f86ea8a52bd45f6e81e7c7
   apple_sign_in: 7716c7ddfa195aeab7dec0dc374ef4ff45d1adb4
-  audioplayers: 84f968cea3f2deab00ec4f8ff53358b3c0b3992c
+  audioplayers: 455322b54050b30ea4b1af7cd9e9d105f74efa8c
   BoringSSL-GRPC: 8edf627ee524575e2f8d19d56f068b448eea3879
   cloud_firestore: d71af1ef6e88742c8baea198ba9c3ddf53ee1da2
   Firebase: 7cf5f9c67f03cb3b606d1d6535286e1080e57eb6
@@ -464,7 +464,7 @@ SPEC CHECKSUMS:
   FirebaseCoreDiagnosticsInterop: 296e2c5f5314500a850ad0b83e9e7c10b011a850
   FirebaseFirestore: 8c158bdde010fa397386333a74570eaef033e62d
   FirebaseStorage: f4f39ae834a7145963b913f54e2f24a9db1d8fac
-  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
   google_sign_in: 6bd214b9c154f881422f5fe27b66aaa7bbd580cc
   GoogleDataTransport: 672fb0ce96fe7f7f31d43672fca62ad2c9c86f7b
   GoogleSignIn: 7137d297ddc022a7e0aa4619c86d72c909fa7213
@@ -487,4 +487,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
 
-COCOAPODS: 1.9.1
+COCOAPODS: 1.10.1

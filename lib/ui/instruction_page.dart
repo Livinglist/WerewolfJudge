@@ -36,19 +36,19 @@ class _InstructionPageState extends State<InstructionPage> {
 
   @override
   Widget build(BuildContext context) {
-    Widget cancelButton = FlatButton(
+    Widget cancelButton = TextButton(
         child: Text("取消"),
         onPressed: () {
           pageController.previousPage(duration: Duration(milliseconds: 200), curve: Curves.fastOutSlowIn);
         });
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确定"),
       onPressed: () {
         pageController.nextPage(duration: Duration(milliseconds: 200), curve: Curves.fastOutSlowIn);
       },
     );
 
-    Widget continueButton2 = FlatButton(
+    Widget continueButton2 = TextButton(
       child: Text("确定"),
       onPressed: () {
         pageController2.nextPage(duration: Duration(milliseconds: 200), curve: Curves.fastOutSlowIn);

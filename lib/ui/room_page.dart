@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:wakelock/wakelock.dart';
@@ -74,12 +76,12 @@ class _RoomPageState extends State<RoomPage> {
   Future<bool> onWillPop() async {
     if (room.roomStatus == RoomStatus.terminated) return true;
 
-    Widget cancelButton = FlatButton(
+    Widget cancelButton = TextButton(
       child: Text("取消"),
       onPressed: () => Navigator.pop(context, false),
     );
 
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确定"),
       onPressed: () {
         Navigator.pop(context, true);
@@ -118,12 +120,12 @@ class _RoomPageState extends State<RoomPage> {
                       return null;
                     }
 
-                    Widget cancelButton = FlatButton(
+                    Widget cancelButton = TextButton(
                       child: Text("取消"),
                       onPressed: () => Navigator.pop(context),
                     );
 
-                    Widget continueButton = FlatButton(
+                    Widget continueButton = TextButton(
                       child: Text("确定"),
                       onPressed: () {
                         Navigator.popUntil(context, (route) => route.isFirst);
@@ -238,7 +240,11 @@ class _RoomPageState extends State<RoomPage> {
                         }
                       }
                     } else if (room.currentActionRole is Wolf &&
-                        (myRole is WolfKing || myRole is WolfQueen || myRole is Nightmare || myRole is WolfBrother || myRole is BloodMoon)) {
+                        (myRole is WolfKing ||
+                            myRole is WolfQueen ||
+                            myRole is Nightmare ||
+                            myRole is WolfBrother ||
+                            myRole is BloodMoon)) {
                       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
                         Timer(Duration(seconds: 3), () {
                           if (room.currentActionerSkillStatus)
@@ -450,7 +456,32 @@ class _RoomPageState extends State<RoomPage> {
                                                       );
                                                     }
 
-                                                    return Container();
+                                                    String rawSvg = Jdenticon.toSvg(seatToPlayerMap[i].uid);
+                                                    return Stack(
+                                                      children: [
+                                                        Positioned.fill(
+                                                            child: ClipRRect(
+                                                              borderRadius: BorderRadius.circular(13),
+                                                              child: Container(
+                                                                height: 26,
+                                                                width: 26,
+                                                                color: Colors.white,
+                                                              )
+                                                            )),
+                                                        Positioned.fill(
+                                                            child: ClipRRect(
+                                                                borderRadius: BorderRadius.circular(13),
+                                                                child: SvgPicture.string(
+                                                                  rawSvg,
+                                                                  fit: BoxFit.contain,
+                                                                  height: 26,
+                                                                  width: 26,
+                                                                )
+                                                            )),
+
+
+                                                      ],
+                                                    );
                                                   },
                                                 ),
                                               ),
@@ -482,7 +513,7 @@ class _RoomPageState extends State<RoomPage> {
                                                   height: double.infinity,
                                                 ),
                                               ),
-                                            )
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -502,10 +533,9 @@ class _RoomPageState extends State<RoomPage> {
                           if (room.currentActionRole is LuckySon && giftDialogShowed == false)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                color: Theme.of(context).primaryColor,
-                                shape: StadiumBorder(),
+                              child: ElevatedButton(
                                 child: Text('查看礼物'),
+                                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, shape: StadiumBorder()),
                                 onPressed: () {
                                   if (giftDialogShowed == false) showGiftDialog();
                                 },
@@ -514,10 +544,9 @@ class _RoomPageState extends State<RoomPage> {
                           if (imHost && room.roomStatus == RoomStatus.seating)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                color: Theme.of(context).primaryColor,
-                                shape: StadiumBorder(),
+                              child: ElevatedButton(
                                 child: Text('准备看牌'),
+                                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, shape: StadiumBorder()),
                                 onPressed: () {
                                   if (players.values.where((element) => element != null).length != room.template.numberOfPlayers) {
                                     showNotAllSeatedDialog();
@@ -530,10 +559,9 @@ class _RoomPageState extends State<RoomPage> {
                           if (imHost && room.roomStatus == RoomStatus.seated)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                color: Theme.of(context).primaryColor,
-                                shape: StadiumBorder(),
+                              child: ElevatedButton(
                                 child: Text('开始游戏'),
+                                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, shape: StadiumBorder()),
                                 onPressed: () {
                                   showStartGameDialog();
                                 },
@@ -542,10 +570,9 @@ class _RoomPageState extends State<RoomPage> {
                           if (imActioner && myRole is! Hunter && myRole is! BlackTrader && myRole is! WolfRobot)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                color: Theme.of(context).primaryColor,
-                                shape: StadiumBorder(),
+                              child: ElevatedButton(
                                 child: Text('不使用技能'),
+                                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, shape: StadiumBorder()),
                                 onPressed: () {
                                   showActionConfirmDialog(-1);
                                 },
@@ -554,10 +581,9 @@ class _RoomPageState extends State<RoomPage> {
                           if (imHost && firstNightEnded)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                color: Theme.of(context).primaryColor,
-                                shape: StadiumBorder(),
+                              child: ElevatedButton(
                                 child: Text('查看昨晚信息'),
+                                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, shape: StadiumBorder()),
                                 onPressed: () {
                                   showLastNightConfirmDialog();
                                 },
@@ -566,10 +592,9 @@ class _RoomPageState extends State<RoomPage> {
                           if (room.roomStatus != RoomStatus.seating && mySeatNumber != null)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                color: Theme.of(context).primaryColor,
-                                shape: StadiumBorder(),
+                              child: ElevatedButton(
                                 child: Text('查看身份'),
+                                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, shape: StadiumBorder()),
                                 onPressed: () {
                                   showRoleCardDialog();
                                 },
@@ -578,14 +603,14 @@ class _RoomPageState extends State<RoomPage> {
                           if (room.roomStatus == RoomStatus.seating && mySeatNumber != null)
                             Padding(
                               padding: EdgeInsets.only(bottom: 12),
-                              child: RaisedButton(
-                                color: Colors.grey,
-                                shape: StadiumBorder(),
+                              child: ElevatedButton(
                                 child: Text('查看身份'),
+                                style: OutlinedButton.styleFrom(backgroundColor: Colors.grey, shape: StadiumBorder()),
                                 onPressed: () {
-                                  scaffoldKey.currentState.showSnackBar(SnackBar(
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                     content: Text('等待其他玩家入座'),
-                                    action: SnackBarAction(label: '好', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar()),
+                                    action:
+                                        SnackBarAction(label: '好', onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar()),
                                   ));
                                 },
                               ),
@@ -627,7 +652,7 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   showActionResultDialog(int index, String msg) {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
         child: Text("确定"),
         onPressed: () {
           Navigator.pop(context);
@@ -667,21 +692,21 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   showWitchActionDialog(int killedIndex) {
-    Widget cancelButton = FlatButton(
+    Widget cancelButton = TextButton(
       child: Text("不救助"),
       onPressed: () => Navigator.pop(context),
     );
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text(
         "救助",
         style: TextStyle(color: killedIndex == mySeatNumber ? Colors.grey : Colors.orange),
       ),
       onPressed: () {
         if (killedIndex == mySeatNumber) {
-          scaffoldKey.currentState.hideCurrentSnackBar();
-          scaffoldKey.currentState.showSnackBar(SnackBar(
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('女巫无法自救'),
-            action: SnackBarAction(label: '惨', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar()),
+            action: SnackBarAction(label: '惨', onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar()),
           ));
         } else {
           Navigator.pop(context);
@@ -692,7 +717,7 @@ class _RoomPageState extends State<RoomPage> {
 
     ///狼队空刀，无人倒台
     if (killedIndex == -1) {
-      continueButton = FlatButton(
+      continueButton = TextButton(
         child: Text(
           "好",
           style: TextStyle(color: killedIndex == mySeatNumber ? Colors.grey : Colors.orange),
@@ -720,13 +745,13 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   showActionConfirmDialog(int index) {
-    Widget cancelButton = FlatButton(
+    Widget cancelButton = TextButton(
         child: Text("取消"),
         onPressed: () {
           anotherIndex = null;
           Navigator.pop(context);
         });
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确定"),
       onPressed: () {
         Navigator.pop(context);
@@ -783,11 +808,11 @@ class _RoomPageState extends State<RoomPage> {
 
   void showEnterSeatDialog(int index) {
     // set up the buttons
-    Widget cancelButton = FlatButton(
+    Widget cancelButton = TextButton(
       child: Text("取消"),
       onPressed: () => Navigator.pop(context),
     );
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确定"),
       onPressed: () {
         FirestoreProvider.instance.takeSeat(widget.roomNumber, index, mySeatNumber).then((result) {
@@ -819,12 +844,12 @@ class _RoomPageState extends State<RoomPage> {
 
   void showLeaveSeatDialog(int index) {
     // set up the buttons
-    Widget cancelButton = FlatButton(
+    Widget cancelButton = TextButton(
       child: Text("取消"),
       onPressed: () => Navigator.pop(context),
     );
 
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确定"),
       onPressed: () {
         mySeatNumber = null;
@@ -853,7 +878,7 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   void showConflictDialog(int index) {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确定"),
       onPressed: () => Navigator.pop(context),
     );
@@ -878,12 +903,12 @@ class _RoomPageState extends State<RoomPage> {
 
   ///Confirm to see the last night information.
   void showLastNightConfirmDialog() {
-    Widget cancelButton = FlatButton(
+    Widget cancelButton = TextButton(
       child: Text("取消"),
       onPressed: () => Navigator.pop(context),
     );
 
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确定"),
       onPressed: () {
         Navigator.pop(context);
@@ -911,7 +936,7 @@ class _RoomPageState extends State<RoomPage> {
 
   ///Confirm to see the last night information.
   void showLastNightInfoDialog() {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确定"),
       onPressed: () {
         Navigator.pop(context);
@@ -938,7 +963,7 @@ class _RoomPageState extends State<RoomPage> {
 
   ///Display the role card.
   void showRoleCardDialog() {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确定"),
       onPressed: () {
         Navigator.pop(context);
@@ -989,7 +1014,7 @@ class _RoomPageState extends State<RoomPage> {
 
   ///Allowing everybody to see their role.
   void showFlipRoleCardDialog() {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确定"),
       onPressed: () {
         Navigator.pop(context);
@@ -1018,7 +1043,7 @@ class _RoomPageState extends State<RoomPage> {
 
   ///Start the game.
   void showStartGameDialog() {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确定"),
       onPressed: () {
         Navigator.pop(context);
@@ -1050,7 +1075,7 @@ class _RoomPageState extends State<RoomPage> {
 
   ///If not all seated, then game cannot be started.
   void showNotAllSeatedDialog() {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("好"),
       onPressed: () => Navigator.pop(context),
     );
@@ -1074,7 +1099,7 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   void showWolfBrotherActionMessage(ActionableMixin actionableMixin) {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
         child: Text("结束互认"),
         onPressed: () {
           Navigator.pop(context);
@@ -1100,7 +1125,7 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   void showActionMessage(ActionableMixin actionableMixin) {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("好"),
       onPressed: () => Navigator.pop(context),
     );
@@ -1124,7 +1149,7 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   void showHunterStatusDialog(ActionableMixin actionableMixin) {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("好"),
       onPressed: () {
         Navigator.pop(context);
@@ -1152,7 +1177,7 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   void showWolfKingStatusDialog(ActionableMixin actionableMixin) {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("好"),
       onPressed: () {
         Navigator.pop(context);
@@ -1181,7 +1206,7 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   showActionForbiddenDialog() {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("好"),
       onPressed: () {
         Navigator.pop(context);
@@ -1218,7 +1243,7 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   showLuckySonVerificationDialog() {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("好"),
       onPressed: () {
         Navigator.pop(context);
@@ -1244,7 +1269,7 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   showGiftDialog() {
-    Widget continueButton = FlatButton(
+    Widget continueButton = TextButton(
       child: Text("确认"),
       onPressed: () {
         Navigator.pop(context);

@@ -44,7 +44,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         content: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        RaisedButton(
+                        ElevatedButton(
                           child: Row(
                             children: <Widget>[
                               Icon(FontAwesomeIcons.github),
@@ -56,7 +56,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           onPressed: () => launch('https://github.com/Livinglist/WerewolfJudge/issues/new'),
                         ),
-                        RaisedButton(
+                        ElevatedButton(
                           child: Row(
                             children: <Widget>[
                               Icon(Icons.email),
@@ -107,7 +107,7 @@ class _SettingsPageState extends State<SettingsPage> {
             applicationName: "萌狼",
             applicationVersion: "v0.0.9",
             aboutBoxChildren: <Widget>[
-              RaisedButton(
+              ElevatedButton(
                 onPressed: () {
                   launch("https://livinglist.github.io");
                 },
@@ -121,7 +121,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ],
                 ),
               ),
-              RaisedButton(
+              ElevatedButton(
                 onPressed: () {
                   launch("https://github.com/Livinglist/WerewolfJudge");
                 },
@@ -152,10 +152,10 @@ class _SettingsPageState extends State<SettingsPage> {
       launch(emailUri.toString());
     } else {
       Navigator.pop(context);
-      scaffoldKey.currentState.hideCurrentSnackBar();
-      scaffoldKey.currentState.showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('出现了未知的问题'),
-        action: SnackBarAction(label: '这真是太棒了', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar()),
+        action: SnackBarAction(label: '这真是太棒了', onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar()),
       ));
     }
   }
