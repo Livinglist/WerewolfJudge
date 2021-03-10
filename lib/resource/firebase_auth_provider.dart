@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:apple_sign_in/apple_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -32,7 +34,11 @@ class FirebaseAuthProvider {
       //verify email address
       cred.user.sendEmailVerification();
 
-      FirebaseFirestore.instance.collection(usersKey).doc(cred.user.uid).set({});
+      var name = getRandomName();
+
+      FirebaseFirestore.instance.collection(usersKey).doc(cred.user.uid).set({
+        userNameKey : name
+      });
       return cred.user;
     });
   }
@@ -114,8 +120,6 @@ class FirebaseAuthProvider {
             if (error is FirebaseAuthException) {
               if (error.code == 'user-not-found') {
                 return registerNewUser(email, password).then((value) {
-                  saveEmailAndPassword(email, password);
-
                   return value;
                 }, onError: (_) {
                   print(_);
@@ -132,8 +136,6 @@ class FirebaseAuthProvider {
             if (error is FirebaseAuthException) {
               if (error.code == 'user-not-found') {
                 return registerNewUser(appleIdCredential.email, appleIdCredential.email).then((firebaseUser) {
-                  saveEmailAndPassword(email, password);
-
                   return firebaseUser;
                 }).whenComplete(() {
                   FirebaseFirestore.instance.collection('appleIdToEmail').doc(userId).set({
@@ -178,8 +180,6 @@ class FirebaseAuthProvider {
       if (error is PlatformException) {
         if (error.code == "user-not-found") {
           return registerNewUser(email, password).then((firebaseUser) {
-            saveEmailAndPassword(email, password);
-
             return firebaseUser;
           });
         }
@@ -193,7 +193,10 @@ class FirebaseAuthProvider {
 
     return firebaseAuth.signInAnonymously().then((cred) {
       print("Firebase Sign In: ${cred.user}");
-      FirebaseFirestore.instance.collection(usersKey).doc(cred.user.uid).set({}, SetOptions(merge: true));
+      var name = getRandomName();
+      FirebaseFirestore.instance.collection(usersKey).doc(cred.user.uid).set({
+        userNameKey : name
+      }, SetOptions(merge: true));
       return cred.user;
     }, onError: (Object error) {
       return null;
@@ -212,8 +215,6 @@ class FirebaseAuthProvider {
       if (error is PlatformException) {
         if (error.code == "user-not-found") {
           return registerNewUser(email, password).then((firebaseUser) {
-            saveEmailAndPassword(email, password);
-
             return firebaseUser;
           });
         } else {
@@ -230,10 +231,56 @@ class FirebaseAuthProvider {
     return FirebaseFirestore.instance.collection(usersKey).doc(this.currentUser.uid).set({userNameKey: name});
   }
 
-  ///Store the email and password in shared preferences
-  static Future saveEmailAndPassword(String email, String password) async {
-//    final sharedPrefs = await SharedPreferences.getInstance();
-//    sharedPrefs.setString(emailKey, email);
-//    sharedPrefs.setString(pwKey, password);
+  static String getRandomName(){
+    List<String> adjs = [
+      '开心',
+      '忧郁',
+      '犹豫',
+      '盲目',
+      '失望',
+      '伤心',
+      '慌张',
+      '紧张',
+      '迷茫',
+      '狂妄',
+      '骄傲',
+      '愚蠢',
+      '怠慢',
+      '固执',
+      '自私',
+      '惆怅',
+      '高傲',
+      '勇敢',
+      '胆小',
+      '优秀',
+      '心机',
+      '抑郁',
+      '慌张'
+    ];
+
+    List<String> nouns = [
+      '狼人',
+      '女巫',
+      '预言家',
+      '白狼王',
+      '狼美人',
+      '猎人',
+      '混子',
+      '白痴',
+      '守卫',
+      '村民',
+      '黑商',
+      '禁票长老',
+      '通灵师',
+      '摄梦人'
+    ];
+
+    var randomNum = Random(DateTime.now().microsecond).nextInt(adjs.length);
+    var left = adjs.elementAt(randomNum);
+
+    randomNum = Random(DateTime.now().microsecond).nextInt(nouns.length);
+    var right = nouns.elementAt(randomNum);
+
+    return left + '的' + right;
   }
 }

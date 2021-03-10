@@ -24,8 +24,7 @@ class FirestoreProvider {
     DocumentReference docRef = FirebaseFirestore.instance.collection(usersKey).doc(uid);
     DocumentSnapshot docSnap = await docRef.get();
 
-
-    if (docSnap.exists) return docSnap.data()[userNameKey]??'无名氏';
+    if (docSnap.exists) return docSnap.data()[userNameKey] ?? '无名氏';
 
     return '无名氏';
   }
@@ -150,8 +149,8 @@ class FirestoreProvider {
   static void handleDate(DocumentSnapshot docSnap, Sink sink) {
     print("asd1");
     var data = docSnap.data();
-    var actions =
-        (data[actionsKey] as Map<String, dynamic>).map((key, value) => MapEntry(Player.indexToRole(int.parse(key)).runtimeType, value as int));
+    var actions = (data[actionsKey] as Map<String, dynamic>)
+        .map((key, value) => MapEntry(Player.indexToRole(int.parse(key)).runtimeType, value as int));
     print("asd2");
     var roomNumber = docSnap.id;
     var roomStatus = RoomStatus.values.elementAt(data[roomStatusKey] ?? 0);
@@ -234,12 +233,12 @@ class FirestoreProvider {
   }
 
   Future<String> getAvatar(String uid) async {
-    if(avatarLinkCache.containsKey(uid)) return avatarLinkCache[uid];
+    if (avatarLinkCache.containsKey(uid)) return avatarLinkCache[uid];
 
     var ref = FirebaseStorage.instance.ref().child('profile_pics/$uid');
 
     return ref.getDownloadURL().then((value) {
-      if(value != null) avatarLinkCache[uid] = value;
+      if (value != null) avatarLinkCache[uid] = value;
       return value;
     }, onError: (_) => null);
   }
@@ -249,14 +248,14 @@ class FirestoreProvider {
 
     final StorageUploadTask uploadTask = storageReference.putData(imageBytes);
 
-    uploadTask.onComplete.then((value){
+    uploadTask.onComplete.then((value) {
       value.ref.getDownloadURL().then((url) => avatarLinkCache[uid] = url);
     });
 
     return uploadTask;
   }
 
-  Future deleteAvatar(String uid){
+  Future deleteAvatar(String uid) {
     return FirebaseStorage().ref().child('profile_pics/$uid').delete().then((_) => avatarLinkCache.remove(uid));
   }
 }

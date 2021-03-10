@@ -154,7 +154,10 @@ class _RoomPageState extends State<RoomPage> {
               builder: (_, AsyncSnapshot<Room> snapshot) {
                 if (snapshot.hasData) {
                   room = snapshot.data;
-                  gridHeight ??= ((MediaQuery.of(context).size.width / 4) + 12) * ((room.template.roles.length / 4).ceil());
+                  gridHeight ??= ((MediaQuery
+                      .of(context)
+                      .size
+                      .width / 4) + 12) * ((room.template.roles.length / 4).ceil());
                   hasSkilledWolf ??= room.hasSkilledWolf;
 
                   var players = room.players;
@@ -326,7 +329,10 @@ class _RoomPageState extends State<RoomPage> {
                   print("myRole is $myRole");
                   print("myRole.runtimeType is ${myRole.runtimeType}");
 
-                  bool scrollable = gridHeight > MediaQuery.of(context).size.height;
+                  bool scrollable = gridHeight > MediaQuery
+                      .of(context)
+                      .size
+                      .height;
 
                   Widget child = Column(
                     children: <Widget>[
@@ -377,6 +383,7 @@ class _RoomPageState extends State<RoomPage> {
                                                               userNameSnapshot.data,
                                                               textAlign: TextAlign.center,
                                                               maxLines: 1,
+                                                              style: TextStyle(fontSize: 13),
                                                             );
                                                           }
                                                           return Container();
@@ -404,10 +411,10 @@ class _RoomPageState extends State<RoomPage> {
                                       padding: EdgeInsets.all(12),
                                       child: Material(
                                         color: ((showWolves &&
-                                                    room.players[i].role is Wolf &&
-                                                    room.players[i].role.runtimeType != WolfRobot &&
-                                                    room.players[i].role.runtimeType != Gargoyle) ||
-                                                ((anotherIndex ?? -1) == i))
+                                            room.players[i].role is Wolf &&
+                                            room.players[i].role.runtimeType != WolfRobot &&
+                                            room.players[i].role.runtimeType != Gargoyle) ||
+                                            ((anotherIndex ?? -1) == i))
                                             ? Colors.red
                                             : Colors.orange,
                                         borderRadius: BorderRadius.all(Radius.circular(16)),
@@ -419,67 +426,56 @@ class _RoomPageState extends State<RoomPage> {
                                                 child: FutureBuilder(
                                                   future: FirestoreProvider.instance.getAvatar(seatToPlayerMap[i].uid),
                                                   builder: (_, AsyncSnapshot<String> urlSnapshot) {
-                                                    if (urlSnapshot.hasData && urlSnapshot != null) {
+                                                    Widget avatar;
+                                                    if (urlSnapshot.hasData) {
                                                       var url = urlSnapshot.data;
-                                                      return Stack(
-                                                        children: <Widget>[
-                                                          Positioned.fill(
-                                                              child: ClipRRect(
-                                                            borderRadius: BorderRadius.circular(13),
-                                                            child: FadeInImage.memoryNetwork(
-                                                              placeholder: kTransparentImage,
-                                                              image: url,
-                                                              fit: BoxFit.cover,
-                                                              width: 26,
-                                                              height: 26,
-                                                            ),
-                                                          )),
-                                                          Positioned.fill(
-                                                              child: ClipRRect(
-                                                            borderRadius: BorderRadius.circular(13),
-                                                            child: BackdropFilter(
-                                                                filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-                                                                child: Container(
-                                                                    width: 26,
-                                                                    height: 26,
-                                                                    decoration: BoxDecoration(
-                                                                        color: ((showWolves &&
-                                                                                    room.players[i].role is Wolf &&
-                                                                                    room.players[i].role.runtimeType != WolfRobot &&
-                                                                                    room.players[i].role.runtimeType != Gargoyle) ||
-                                                                                ((anotherIndex ?? -1) == i))
-                                                                            ? Colors.red.shade400.withOpacity(0.8)
-                                                                            : Colors.grey.shade200.withOpacity(0.5)),
-                                                                    child: Container())),
-                                                          )),
-                                                        ],
+                                                      avatar = FadeInImage.memoryNetwork(
+                                                        placeholder: kTransparentImage,
+                                                        image: url,
+                                                        fit: BoxFit.cover,
+                                                        width: 26,
+                                                        height: 26,
+                                                      );
+                                                    } else {
+                                                      String rawSvg = Jdenticon.toSvg(seatToPlayerMap[i].uid);
+                                                      avatar = SvgPicture.string(
+                                                        rawSvg,
+                                                        fit: BoxFit.contain,
+                                                        height: 26,
+                                                        width: 26,
                                                       );
                                                     }
 
-                                                    String rawSvg = Jdenticon.toSvg(seatToPlayerMap[i].uid);
                                                     return Stack(
-                                                      children: [
+                                                      children: <Widget>[
                                                         Positioned.fill(
                                                             child: ClipRRect(
                                                               borderRadius: BorderRadius.circular(13),
-                                                              child: Container(
-                                                                height: 26,
-                                                                width: 26,
-                                                                color: Colors.white,
-                                                              )
+                                                              child: Container(color: Colors.white),
                                                             )),
                                                         Positioned.fill(
                                                             child: ClipRRect(
-                                                                borderRadius: BorderRadius.circular(13),
-                                                                child: SvgPicture.string(
-                                                                  rawSvg,
-                                                                  fit: BoxFit.contain,
-                                                                  height: 26,
-                                                                  width: 26,
-                                                                )
+                                                              borderRadius: BorderRadius.circular(13),
+                                                              child: avatar,
                                                             )),
-
-
+                                                        Positioned.fill(
+                                                            child: ClipRRect(
+                                                              borderRadius: BorderRadius.circular(13),
+                                                              child: BackdropFilter(
+                                                                  filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                                                                  child: Container(
+                                                                      width: 26,
+                                                                      height: 26,
+                                                                      decoration: BoxDecoration(
+                                                                          color: ((showWolves &&
+                                                                              room.players[i].role is Wolf &&
+                                                                              room.players[i].role.runtimeType != WolfRobot &&
+                                                                              room.players[i].role.runtimeType != Gargoyle) ||
+                                                                              ((anotherIndex ?? -1) == i))
+                                                                              ? Colors.red.shade400.withOpacity(0.8)
+                                                                              : Colors.grey.shade200.withOpacity(0.5)),
+                                                                      child: Container())),
+                                                            )),
                                                       ],
                                                     );
                                                   },
@@ -488,7 +484,7 @@ class _RoomPageState extends State<RoomPage> {
                                             Container(
                                               child: Padding(
                                                 padding: EdgeInsets.only(left: 12, top: 12),
-                                                child: Text((i + 1).toString()),
+                                                child: Text((i + 1).toString(), style: TextStyle(fontWeight: FontWeight.bold)),
                                               ),
                                               decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
                                             ),
@@ -535,7 +531,9 @@ class _RoomPageState extends State<RoomPage> {
                               padding: EdgeInsets.only(bottom: 12),
                               child: ElevatedButton(
                                 child: Text('查看礼物'),
-                                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, shape: StadiumBorder()),
+                                style: OutlinedButton.styleFrom(backgroundColor: Theme
+                                    .of(context)
+                                    .primaryColor, shape: StadiumBorder()),
                                 onPressed: () {
                                   if (giftDialogShowed == false) showGiftDialog();
                                 },
@@ -546,9 +544,13 @@ class _RoomPageState extends State<RoomPage> {
                               padding: EdgeInsets.only(bottom: 12),
                               child: ElevatedButton(
                                 child: Text('准备看牌'),
-                                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, shape: StadiumBorder()),
+                                style: OutlinedButton.styleFrom(backgroundColor: Theme
+                                    .of(context)
+                                    .primaryColor, shape: StadiumBorder()),
                                 onPressed: () {
-                                  if (players.values.where((element) => element != null).length != room.template.numberOfPlayers) {
+                                  if (players.values
+                                      .where((element) => element != null)
+                                      .length != room.template.numberOfPlayers) {
                                     showNotAllSeatedDialog();
                                   } else {
                                     showFlipRoleCardDialog();
@@ -561,7 +563,9 @@ class _RoomPageState extends State<RoomPage> {
                               padding: EdgeInsets.only(bottom: 12),
                               child: ElevatedButton(
                                 child: Text('开始游戏'),
-                                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, shape: StadiumBorder()),
+                                style: OutlinedButton.styleFrom(backgroundColor: Theme
+                                    .of(context)
+                                    .primaryColor, shape: StadiumBorder()),
                                 onPressed: () {
                                   showStartGameDialog();
                                 },
@@ -572,7 +576,9 @@ class _RoomPageState extends State<RoomPage> {
                               padding: EdgeInsets.only(bottom: 12),
                               child: ElevatedButton(
                                 child: Text('不使用技能'),
-                                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, shape: StadiumBorder()),
+                                style: OutlinedButton.styleFrom(backgroundColor: Theme
+                                    .of(context)
+                                    .primaryColor, shape: StadiumBorder()),
                                 onPressed: () {
                                   showActionConfirmDialog(-1);
                                 },
@@ -583,7 +589,9 @@ class _RoomPageState extends State<RoomPage> {
                               padding: EdgeInsets.only(bottom: 12),
                               child: ElevatedButton(
                                 child: Text('查看昨晚信息'),
-                                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, shape: StadiumBorder()),
+                                style: OutlinedButton.styleFrom(backgroundColor: Theme
+                                    .of(context)
+                                    .primaryColor, shape: StadiumBorder()),
                                 onPressed: () {
                                   showLastNightConfirmDialog();
                                 },
@@ -594,7 +602,9 @@ class _RoomPageState extends State<RoomPage> {
                               padding: EdgeInsets.only(bottom: 12),
                               child: ElevatedButton(
                                 child: Text('查看身份'),
-                                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, shape: StadiumBorder()),
+                                style: OutlinedButton.styleFrom(backgroundColor: Theme
+                                    .of(context)
+                                    .primaryColor, shape: StadiumBorder()),
                                 onPressed: () {
                                   showRoleCardDialog();
                                 },
@@ -610,7 +620,7 @@ class _RoomPageState extends State<RoomPage> {
                                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                     content: Text('等待其他玩家入座'),
                                     action:
-                                        SnackBarAction(label: '好', onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar()),
+                                    SnackBarAction(label: '好', onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar()),
                                   ));
                                 },
                               ),
@@ -981,23 +991,23 @@ class _RoomPageState extends State<RoomPage> {
       ),
       content: showArtwork
           ? Container(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  Image.asset(RoleImageProvider.instance[myRole], fit: BoxFit.fitHeight),
-                  Text(
-                    myRole.roleName,
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
-            )
-          : Text(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Image.asset(RoleImageProvider.instance[myRole], fit: BoxFit.fitHeight),
+            Text(
               myRole.roleName,
               style: TextStyle(color: Colors.white),
-              textAlign: TextAlign.center,
             ),
+          ],
+        ),
+      )
+          : Text(
+        myRole.roleName,
+        style: TextStyle(color: Colors.white),
+        textAlign: TextAlign.center,
+      ),
       actions: [
         continueButton,
       ],
@@ -1215,7 +1225,8 @@ class _RoomPageState extends State<RoomPage> {
       },
     );
 
-    String title = '你的技能已被封锁', msg = '点击"好"后请闭眼';
+    String title = '你的技能已被封锁',
+        msg = '点击"好"后请闭眼';
     if (myRole is Wolf) {
       title = '狼队的技能已被封锁';
       if (imActioner)
