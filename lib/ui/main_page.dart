@@ -705,6 +705,8 @@ class _MainPageState extends State<MainPage> {
           FirestoreProvider.instance.deleteAvatar(uid).then((value) {
             setState(() {});
           });
+
+          Navigator.pop(context);
         });
 
     showDialog(
