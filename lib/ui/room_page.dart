@@ -444,7 +444,7 @@ class _RoomPageState extends State<RoomPage> {
                                                         String rawSvg = Jdenticon.toSvg(seatToPlayerMap[i].uid);
                                                         avatar = SvgPicture.string(
                                                           rawSvg,
-                                                          fit: BoxFit.contain,
+                                                          fit: BoxFit.cover,
                                                           height: 26,
                                                           width: 26,
                                                         );
@@ -452,35 +452,35 @@ class _RoomPageState extends State<RoomPage> {
                                                     }
 
                                                     return Stack(
+                                                      alignment: Alignment.center,
                                                       children: <Widget>[
                                                         Positioned.fill(
                                                             child: ClipRRect(
-                                                          borderRadius: BorderRadius.circular(13),
-                                                          child: Container(color: Colors.white),
-                                                        )),
+                                                              borderRadius: BorderRadius.circular(16),
+                                                              child: Container(color: Colors.white),
+                                                            )),
                                                         Positioned.fill(
                                                             child: ClipRRect(
-                                                          borderRadius: BorderRadius.circular(13),
-                                                          child: avatar,
-                                                        )),
+                                                              borderRadius: BorderRadius.circular(16),
+                                                              child: avatar,
+                                                            )),
                                                         Positioned.fill(
                                                             child: ClipRRect(
-                                                          borderRadius: BorderRadius.circular(13),
-                                                          child: BackdropFilter(
-                                                              filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-                                                              child: Container(
-                                                                  width: 26,
-                                                                  height: 26,
-                                                                  decoration: BoxDecoration(
-                                                                      color: ((showWolves &&
-                                                                                  room.players[i].role is Wolf &&
-                                                                                  room.players[i].role.runtimeType != WolfRobot &&
-                                                                                  room.players[i].role.runtimeType != Gargoyle) ||
-                                                                              ((anotherIndex ?? -1) == i))
-                                                                          ? Colors.red.shade400.withOpacity(0.8)
-                                                                          : Colors.grey.shade200.withOpacity(0.5)),
-                                                                  child: Container())),
-                                                        )),
+                                                              borderRadius: BorderRadius.circular(16),
+                                                              child: ImageFiltered(
+                                                                imageFilter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                                                                child: Container(
+                                                                    decoration: BoxDecoration(
+                                                                        color: ((showWolves &&
+                                                                            room.players[i].role is Wolf &&
+                                                                            room.players[i].role.runtimeType != WolfRobot &&
+                                                                            room.players[i].role.runtimeType != Gargoyle) ||
+                                                                            ((anotherIndex ?? -1) == i))
+                                                                            ? Colors.red.shade400.withOpacity(0.8)
+                                                                            : Colors.grey.shade200.withOpacity(0.4)),
+                                                                    child: Container()),
+                                                              )
+                                                            )),
                                                       ],
                                                     );
                                                   },
