@@ -242,7 +242,7 @@ class _MainPageState extends State<MainPage> {
                               Positioned(
                                 left: 12,
                                 top: 12,
-                                child: Text('使用说明'),
+                                child: Text('使用说明', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                               ),
                               Positioned(
                                 left: 12,

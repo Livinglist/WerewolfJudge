@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
     SharedPreferencesProvider.instance.initSharedPrefs();
 
     return MaterialApp(
-        title: '狼杀小法官',
+        title: '萌狼',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.orange,

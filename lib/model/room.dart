@@ -379,6 +379,11 @@ class Room {
     }
   }
 
+  void restart(){
+    this.template = CustomTemplate.newGame(roles: this.template.roles);
+    FirestoreProvider.instance.prepareAnotherRound(uid: this.hostUid, template: this.template);
+  }
+
   void checkInForLuckySonVerifications(int myIndex) {
     FirestoreProvider.instance
         .checkInForLuckySonVerifications(myIndex: myIndex, totalPlayers: players.length, currentActionerIndex: currentActionerIndex + 1);

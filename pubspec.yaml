@@ -11,7 +11,7 @@ description: A new Flutter application.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+9
+version: 1.0.0+10
 
 environment:
   sdk: ">=2.6.0 <3.0.0"
@@ -20,26 +20,26 @@ dependencies:
   flutter:
     sdk: flutter
   audioplayers: 0.17.4
-  firebase_core: ^0.5.0
-  apple_sign_in: ^0.1.0
-  font_awesome_flutter: 8.8.1
-  firebase_auth: 0.18.0+1
-  google_sign_in: 4.5.1
-  cloud_firestore: 0.14.0+1
-  shared_preferences: 0.5.8
-  pin_code_fields: 4.0.0
-  wakelock: 0.1.4+2
-  rxdart: 0.24.1
-  url_launcher: 5.5.0
-  flutter_signin_button: 1.0.0
-  image_cropper: 1.2.3
-  firebase_storage: 4.0.0
-  path_provider:
-  image_picker: 0.6.7+4
-  transparent_image: 1.0.0
-  vibration: 1.4.0
-  jdenticon_dart: 2.0.0
-  flutter_svg: 0.19.3
+  firebase_core:
+  apple_sign_in:
+  font_awesome_flutter:
+  firebase_auth:
+  google_sign_in:
+  cloud_firestore:
+  shared_preferences:
+  pin_code_fields:
+  wakelock:
+  rxdart:
+  url_launcher:
+  flutter_signin_button:
+  image_cropper:
+  firebase_storage:
+  path_provider: ^1.6.22
+  image_picker:
+  transparent_image:
+  vibration:
+  jdenticon_dart:
+  flutter_svg:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2

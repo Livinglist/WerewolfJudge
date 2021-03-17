@@ -25,7 +25,7 @@ class MainPageTile extends StatelessWidget {
                   Positioned(
                     left: 12,
                     top: 12,
-                    child: Text(title),
+                    child: Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                   ),
                   if (iconTitle != null)
                     Align(

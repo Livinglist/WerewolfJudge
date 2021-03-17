@@ -2,7 +2,7 @@ import 'god.dart';
 
 class Witch extends God {
   Witch() : super(roleName: '女巫'){
-    super.actionMessage = "请选择使用毒药或者解药";
+    super.actionMessage = "请选择是否使用毒药";
     super.actionConfirmMessage = "毒杀";
   }
 

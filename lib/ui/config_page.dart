@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:vibration/vibration.dart';
@@ -100,11 +102,13 @@ class _ConfigPageState extends State<ConfigPage> {
 
   @override
   void initState() {
-    Vibration.hasCustomVibrationsSupport().then((hasCoreHaptics) {
-      setState(() {
-        shouldVibrate = hasCoreHaptics;
+    if (!kIsWeb) {
+      Vibration.hasCustomVibrationsSupport().then((hasCoreHaptics) {
+        setState(() {
+          shouldVibrate = hasCoreHaptics;
+        });
       });
-    });
+    }
 
     scrollController.addListener(() {
       if (this.mounted) {
@@ -282,9 +286,7 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('狼美守卫12人'),
                       onPressed: () {
-                        Vibration.cancel().then((_) {
-                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
-                        });
+                        vibrate(255);
 
                         setState(() {
                           for (var i in selectedMap.keys) {
@@ -312,9 +314,7 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('狼兄黑商12人'),
                       onPressed: () {
-                        Vibration.cancel().then((_) {
-                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
-                        });
+                        vibrate(255);
 
                         setState(() {
                           for (var i in selectedMap.keys) {
@@ -343,9 +343,7 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('石像鬼守墓人12人'),
                       onPressed: () {
-                        Vibration.cancel().then((_) {
-                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
-                        });
+                        vibrate(255);
 
                         setState(() {
                           for (var i in selectedMap.keys) {
@@ -373,9 +371,7 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('梦魇守卫12人'),
                       onPressed: () {
-                        Vibration.cancel().then((_) {
-                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
-                        });
+                        vibrate(255);
 
                         setState(() {
                           for (var i in selectedMap.keys) {
@@ -403,9 +399,7 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('血月猎魔12人'),
                       onPressed: () {
-                        Vibration.cancel().then((_) {
-                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
-                        });
+                        vibrate(255);
 
                         setState(() {
                           for (var i in selectedMap.keys) {
@@ -433,9 +427,7 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('狼王摄梦人12人'),
                       onPressed: () {
-                        Vibration.cancel().then((_) {
-                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
-                        });
+                        vibrate(255);
 
                         setState(() {
                           for (var i in selectedMap.keys) {
@@ -463,9 +455,7 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('狼王魔术师12人'),
                       onPressed: () {
-                        Vibration.cancel().then((_) {
-                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
-                        });
+                        vibrate(255);
 
                         setState(() {
                           for (var i in selectedMap.keys) {
@@ -493,9 +483,7 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       label: Text('机械狼通灵师12人'),
                       onPressed: () {
-                        Vibration.cancel().then((_) {
-                          Vibration.vibrate(pattern: [0, 5], intensities: [255]);
-                        });
+                        vibrate(255);
 
                         setState(() {
                           for (var i in selectedMap.keys) {
@@ -615,12 +603,21 @@ class _ConfigPageState extends State<ConfigPage> {
               ),
             ),
             Divider(),
-            Padding(padding: EdgeInsets.only(left: 12), child: Text("该应用可以充当第一夜法官的板子有：狼美守卫, 狼兄黑商, 石像鬼守墓人, 梦魇守卫, 血月猎魔, 狼王摄梦人, 狼王魔术师, 机械狼通灵师。")),
+            Padding(
+                padding: EdgeInsets.only(left: 12), child: Text("该应用可以充当第一夜法官的板子有：狼美守卫, 狼兄黑商, 石像鬼守墓人, 梦魇守卫, 血月猎魔, 狼王摄梦人, 狼王魔术师, 机械狼通灵师。")),
             SizedBox(
               height: 36,
             ),
           ],
         ));
+  }
+
+  void vibrate(int intensity) {
+    if(shouldVibrate){
+      Vibration.cancel().then((_) {
+        Vibration.vibrate(pattern: [0, 5], intensities: [intensity]);
+      });
+    }
   }
 
   Widget buildFilterChip(String roleName) {
@@ -629,9 +626,7 @@ class _ConfigPageState extends State<ConfigPage> {
       label: Text(roleName.replaceAll(RegExp(r'[0-9]\b'), '')),
       selected: selectedMap[roleName],
       onSelected: (selected) {
-        Vibration.cancel().then((_) {
-          Vibration.vibrate(pattern: [0, 5], intensities: [125]);
-        });
+        vibrate(125);
 
         setState(() {
           selectedMap[roleName] = selected;

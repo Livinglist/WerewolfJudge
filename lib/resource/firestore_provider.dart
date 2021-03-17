@@ -88,7 +88,7 @@ class FirestoreProvider {
         .collection(rooms)
         .doc(roomNum)
         .snapshots()
-        .transform<Room>(StreamTransformer.fromHandlers(handleData: handleDate));
+        .transform<Room>(StreamTransformer.fromHandlers(handleData: handleData));
   }
 
   Future<int> takeSeat(String roomNumber, int seatNumber, [int currentSeatNumber]) async {
@@ -146,7 +146,7 @@ class FirestoreProvider {
     return roomNumber;
   }
 
-  static void handleDate(DocumentSnapshot docSnap, Sink sink) {
+  static void handleData(DocumentSnapshot docSnap, Sink sink) {
     print("asd1");
     var data = docSnap.data();
     var actions = (data[actionsKey] as Map<String, dynamic>)
@@ -203,6 +203,34 @@ class FirestoreProvider {
     DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
 
     docRef.set({roomStatusKey: RoomStatus.ongoing.index, currentActionerIndexKey: 0}, SetOptions(merge: true));
+  }
+
+  void prepareAnotherRound({String uid, Template template}) async {
+    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
+
+    //docRef.set({roomStatusKey: RoomStatus.seated.index}, SetOptions(merge: true));
+
+    DocumentSnapshot docSnap = await docRef.get();
+
+    Map<String, dynamic> currentRoleToPlayerMap = docSnap.data()[playersKey];
+
+    docRef.set({
+      actionsKey: {},
+      hasPoisonKey: true,
+      hasAntidoteKey: true,
+      timestampKey: DateTime.now().toUtc().millisecondsSinceEpoch,
+      hostUidKey: uid,
+      roomStatus: RoomStatus.seating.index,
+      rolesKey: template.roles.map((e) => Player.roleToIndex(e)).toList(),
+      playersKey: Map.fromEntries(List.generate(template.roles.length, (index){
+        var playerMap = currentRoleToPlayerMap[index.toString()];
+
+        playerMap[roleKey] = Player.roleToIndex(template.roles.elementAt(index));
+
+        return MapEntry(index.toString(), playerMap);
+      })),
+      currentActionerIndexKey: 0,
+    });
   }
 
   void performAction(Role role, int targetSeat, int currentActionerIndex, {bool usePoison = false}) {
