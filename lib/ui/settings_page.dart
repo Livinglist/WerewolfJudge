@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vibration/vibration.dart';
+import 'package:werewolfjudge/resource/constants.dart';
 import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -12,6 +15,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   bool showArtwork, shouldVibrate = false;
+  String funFact;
 
   @override
   void initState() {
@@ -22,6 +26,9 @@ class _SettingsPageState extends State<SettingsPage> {
     });
 
     showArtwork = SharedPreferencesProvider.instance.getArtworkEnabled();
+
+    funFact = funFacts.elementAt(Random(DateTime.now().microsecond).nextInt(funFacts.length));
+
     super.initState();
   }
 
@@ -77,7 +84,13 @@ class _SettingsPageState extends State<SettingsPage> {
           Container(
             height: 240,
             child: Center(
-              child: Text("¯\\_(ツ)_/¯"),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("¯\\_(ツ)_/¯", textAlign: TextAlign.center),
+                  Text(funFact, textAlign: TextAlign.center,),
+                ],
+              )
             ),
           ),
           Divider(height: 0),
