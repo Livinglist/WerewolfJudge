@@ -144,8 +144,18 @@ class _InstructionPageState extends State<InstructionPage> {
               style: TextStyle(color: Colors.black54),
             ),
           ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Divider(),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              '该应用仅支持主持第一夜的法官，第一天无人出局怎么办？\n\n¯\\_(ツ)_/¯都多大的人了，自己想办法。',
+            ),
+          ),
           SizedBox(
-            height: 36,
+            height: 64,
           )
         ],
       ),
