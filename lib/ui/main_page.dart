@@ -18,6 +18,7 @@ import 'package:transparent_image/transparent_image.dart';
 import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
 import 'package:werewolfjudge/resource/firestore_provider.dart';
 import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
+import 'package:werewolfjudge/ui/components/tap_down_wrapper.dart';
 import 'package:werewolfjudge/ui/instruction_page.dart';
 import 'package:werewolfjudge/ui/room_page.dart';
 import 'package:werewolfjudge/ui/settings_page.dart';
@@ -102,31 +103,31 @@ class _MainPageState extends State<MainPage> {
                                       } else {
                                         String rawSvg = Jdenticon.toSvg(user.uid);
                                         return ClipRRect(
-                                          borderRadius: BorderRadius.circular(13),
-                                          child: Stack(
-                                            children: [
-                                              Container(
-                                                height: 26,
-                                                width: 26,
-                                                color: Colors.white,
-                                              ),
-                                              SvgPicture.string(
-                                                rawSvg,
-                                                fit: BoxFit.contain,
-                                                height: 26,
-                                                width: 26,
-                                              ),
-                                            ],
-                                          )
-                                        );
+                                            borderRadius: BorderRadius.circular(13),
+                                            child: Stack(
+                                              children: [
+                                                Container(
+                                                  height: 26,
+                                                  width: 26,
+                                                  color: Colors.white,
+                                                ),
+                                                SvgPicture.string(
+                                                  rawSvg,
+                                                  fit: BoxFit.contain,
+                                                  height: 26,
+                                                  width: 26,
+                                                ),
+                                              ],
+                                            ));
                                       }
                                     },
                                   ),
-                                if (user == null) Container(
-                                  height: 26,
-                                  width: 26,
-                                  child: Icon(FontAwesomeIcons.userCircle),
-                                ),
+                                if (user == null)
+                                  Container(
+                                    height: 26,
+                                    width: 26,
+                                    child: Icon(FontAwesomeIcons.userCircle),
+                                  ),
                                 SizedBox(
                                   width: 12,
                                 ),
@@ -158,68 +159,72 @@ class _MainPageState extends State<MainPage> {
                   TableRow(children: [
                     Container(
                       height: childHeight,
-                      child: MainPageTile(
-                          title: '进入房间',
-                          iconTitle: 'person-booth',
-                          onTap: () {
-                            if (user == null) {
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text("请先登陆"),
-                                action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
-                              ));
-                            } else
-                              showEnterRoomDialog();
-                          }),
+                      child: TapDownWrapper(
+                        onTap: () {
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text("请先登陆"),
+                              action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
+                            ));
+                          } else
+                            showEnterRoomDialog();
+                        },
+                        child: MainPageTile(title: '进入房间', iconTitle: 'person-booth'),
+                      ),
                     ),
                     Container(
                       height: childHeight,
-                      child: MainPageTile(
-                          title: '创建房间',
-                          iconTitle: 'concierge-bell',
-                          onTap: () {
-                            if (user == null) {
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text("请先登陆"),
-                                action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
-                              ));
-                            } else
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
-                          }),
+                      child: TapDownWrapper(
+                        child: MainPageTile(title: '创建房间', iconTitle: 'concierge-bell'),
+                        onTap: () {
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text("请先登陆"),
+                              action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
+                            ));
+                          } else
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
+                        },
+                      ),
                     ),
                   ]),
                   TableRow(children: [
                     Container(
                       height: childHeight,
-                      child: MainPageTile(
-                          title: '返回上局',
-                          iconTitle: 'arrow-alt-circle-left',
-                          onTap: () {
-                            if (user == null) {
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text("请先登陆"),
-                                action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
-                              ));
-                            } else {
-                              var lastRoomNumber = getLastRoomNumber();
-                              FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
-                                if (isValid) {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: lastRoomNumber)));
-                                }
-                              });
-                            }
-                          }),
+                      child: TapDownWrapper(
+                        child: MainPageTile(
+                            title: '返回上局',
+                            iconTitle: 'arrow-alt-circle-left'),
+                        onTap: () {
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text("请先登陆"),
+                              action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
+                            ));
+                          } else {
+                            var lastRoomNumber = getLastRoomNumber();
+                            FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
+                              if (isValid) {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: lastRoomNumber)));
+                              }
+                            });
+                          }
+                        },
+                      ),
                     ),
                     Container(
                       height: childHeight,
-                      child: MainPageTile(
-                          title: '设置',
-                          iconTitle: 'sliders-v-square',
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage()));
-                          }),
+                      child: TapDownWrapper(
+                        child: MainPageTile(
+                            title: '设置',
+                            iconTitle: 'sliders-v-square'),
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage()));
+                        },
+                      ),
                     )
                   ]),
                 ],
@@ -228,37 +233,39 @@ class _MainPageState extends State<MainPage> {
                 height: childHeight,
                 child: Padding(
                   padding: EdgeInsets.all(12),
-                  child: Material(
-                      color: Colors.orange,
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                      elevation: 8,
-                      child: InkWell(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => InstructionPage())),
-                        splashColor: Colors.orangeAccent,
+                  child: TapDownWrapper(
+                    child: Material(
+                        color: Colors.orange,
                         borderRadius: BorderRadius.all(Radius.circular(16)),
-                        child: Container(
-                          child: Stack(
-                            children: <Widget>[
-                              Positioned(
-                                left: 12,
-                                top: 12,
-                                child: Text('使用说明', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                              ),
-                              Positioned(
-                                left: 12,
-                                top: 36,
-                                right: 12,
-                                bottom: 12,
-                                child: Text(
-                                  '1. 当场上有与普通狼人同时见面的技能狼时，狼人夜由技能狼开刀。\n2. 当场上没有与普通狼人同时见面的技能狼时，狼人夜由座位号最小的普通狼人开刀。\n3. 与普通狼人见面的技能狼（如狼美人，白狼王等），在其单独的回合使用其技能。\n4. 在确认完技能发动的对象或状态后，当前角色的回合会立刻结束，进行到下一个角色的回合。故狼人在狼人夜请先讨论战术后，方可开刀。',
-                                  overflow: TextOverflow.fade,
+                        elevation: 8,
+                        child: InkWell(
+                          splashColor: Colors.orangeAccent,
+                          borderRadius: BorderRadius.all(Radius.circular(16)),
+                          child: Container(
+                            child: Stack(
+                              children: <Widget>[
+                                Positioned(
+                                  left: 12,
+                                  top: 12,
+                                  child: Text('使用说明', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                                 ),
-                              )
-                            ],
+                                Positioned(
+                                  left: 12,
+                                  top: 36,
+                                  right: 12,
+                                  bottom: 12,
+                                  child: Text(
+                                    '1. 当场上有与普通狼人同时见面的技能狼时，狼人夜由技能狼开刀。\n2. 当场上没有与普通狼人同时见面的技能狼时，狼人夜由座位号最小的普通狼人开刀。\n3. 与普通狼人见面的技能狼（如狼美人，白狼王等），在其单独的回合使用其技能。\n4. 在确认完技能发动的对象或状态后，当前角色的回合会立刻结束，进行到下一个角色的回合。故狼人在狼人夜请先讨论战术后，方可开刀。',
+                                    overflow: TextOverflow.fade,
+                                  ),
+                                )
+                              ],
+                            ),
+                            decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
                           ),
-                          decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
-                        ),
-                      )),
+                        )),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => InstructionPage())),
+                  ),
                 ),
               ),
               SizedBox(height: 12)
@@ -748,7 +755,7 @@ class _MainPageState extends State<MainPage> {
                   onPressed: () async {
                     Navigator.pop(context);
                     pickAvatar().then((value) {
-                      if(value == null) return;
+                      if (value == null) return;
                       value.onComplete.then((value) {
                         setState(() {});
                       });
@@ -783,7 +790,7 @@ class _MainPageState extends State<MainPage> {
     final picker = ImagePicker();
     final pickedFile = await picker.getImage(source: ImageSource.gallery, imageQuality: 85);
 
-    if(pickedFile == null) return null;
+    if (pickedFile == null) return null;
 
     File croppedFile = await ImageCropper.cropImage(
         sourcePath: pickedFile.path,

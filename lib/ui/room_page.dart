@@ -19,6 +19,7 @@ import 'package:werewolfjudge/resource/firestore_provider.dart';
 import 'package:werewolfjudge/resource/judge_audio_provider.dart';
 import 'package:werewolfjudge/resource/role_image_provider.dart';
 import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
+import 'package:werewolfjudge/ui/components/tap_down_wrapper.dart';
 
 import 'components/black_trader_dialog.dart';
 
@@ -412,111 +413,113 @@ class _RoomPageState extends State<RoomPage> {
                                   for (var i in Iterable.generate(room.template.roles.length))
                                     Padding(
                                       padding: EdgeInsets.all(12),
-                                      child: Material(
-                                        color: ((showWolves &&
-                                                    room.players[i].role is Wolf &&
-                                                    room.players[i].role.runtimeType != WolfRobot &&
-                                                    room.players[i].role.runtimeType != Gargoyle) ||
-                                                ((anotherIndex ?? -1) == i))
-                                            ? Colors.red
-                                            : Colors.orange,
-                                        borderRadius: BorderRadius.all(Radius.circular(16)),
-                                        elevation: 8,
-                                        child: Stack(
-                                          children: <Widget>[
-                                            if (seatToPlayerMap[i] != null)
-                                              Positioned.fill(
-                                                child: FutureBuilder(
-                                                  future: FirestoreProvider.instance.getAvatar(seatToPlayerMap[i].uid),
-                                                  builder: (_, AsyncSnapshot<String> urlSnapshot) {
-                                                    Widget avatar = Container();
-                                                    if (urlSnapshot.hasData) {
-                                                      var url = urlSnapshot.data;
-                                                      avatar = FadeInImage.memoryNetwork(
-                                                        placeholder: kTransparentImage,
-                                                        image: url,
-                                                        fit: BoxFit.cover,
-                                                        width: 26,
-                                                        height: 26,
-                                                      );
-                                                    } else {
-                                                      if (!kIsWeb) {
-                                                        String rawSvg = Jdenticon.toSvg(seatToPlayerMap[i].uid);
-                                                        avatar = SvgPicture.string(
-                                                          rawSvg,
+                                      child: TapDownWrapper(
+                                        child: Material(
+                                          color: ((showWolves &&
+                                              room.players[i].role is Wolf &&
+                                              room.players[i].role.runtimeType != WolfRobot &&
+                                              room.players[i].role.runtimeType != Gargoyle) ||
+                                              ((anotherIndex ?? -1) == i))
+                                              ? Colors.red
+                                              : Colors.orange,
+                                          borderRadius: BorderRadius.all(Radius.circular(16)),
+                                          elevation: 8,
+                                          child: Stack(
+                                            children: <Widget>[
+                                              if (seatToPlayerMap[i] != null)
+                                                Positioned.fill(
+                                                  child: FutureBuilder(
+                                                    future: FirestoreProvider.instance.getAvatar(seatToPlayerMap[i].uid),
+                                                    builder: (_, AsyncSnapshot<String> urlSnapshot) {
+                                                      Widget avatar = Container();
+                                                      if (urlSnapshot.hasData) {
+                                                        var url = urlSnapshot.data;
+                                                        avatar = FadeInImage.memoryNetwork(
+                                                          placeholder: kTransparentImage,
+                                                          image: url,
                                                           fit: BoxFit.cover,
-                                                          height: 26,
                                                           width: 26,
+                                                          height: 26,
                                                         );
+                                                      } else {
+                                                        if (!kIsWeb) {
+                                                          String rawSvg = Jdenticon.toSvg(seatToPlayerMap[i].uid);
+                                                          avatar = SvgPicture.string(
+                                                            rawSvg,
+                                                            fit: BoxFit.cover,
+                                                            height: 26,
+                                                            width: 26,
+                                                          );
+                                                        }
                                                       }
-                                                    }
 
-                                                    return Stack(
-                                                      alignment: Alignment.center,
-                                                      children: <Widget>[
-                                                        Positioned.fill(
-                                                            child: ClipRRect(
-                                                              borderRadius: BorderRadius.circular(16),
-                                                              child: Container(color: Colors.white),
-                                                            )),
-                                                        Positioned.fill(
-                                                            child: ClipRRect(
-                                                              borderRadius: BorderRadius.circular(16),
-                                                              child: avatar,
-                                                            )),
-                                                        Positioned.fill(
-                                                            child: ClipRRect(
-                                                              borderRadius: BorderRadius.circular(16),
-                                                              child: ImageFiltered(
-                                                                imageFilter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-                                                                child: Container(
-                                                                    decoration: BoxDecoration(
-                                                                        color: ((showWolves &&
-                                                                            room.players[i].role is Wolf &&
-                                                                            room.players[i].role.runtimeType != WolfRobot &&
-                                                                            room.players[i].role.runtimeType != Gargoyle) ||
-                                                                            ((anotherIndex ?? -1) == i))
-                                                                            ? Colors.red.shade400.withOpacity(0.8)
-                                                                            : Colors.grey.shade200.withOpacity(0.4)),
-                                                                    child: Container()),
-                                                              )
-                                                            )),
-                                                      ],
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                            Container(
-                                              child: Padding(
-                                                padding: EdgeInsets.only(left: 12, top: 12),
-                                                child: Text((i + 1).toString(), style: TextStyle(fontWeight: FontWeight.bold)),
-                                              ),
-                                              decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
-                                            ),
-                                            if (mySeatNumber == i)
-                                              Align(
-                                                alignment: Alignment.bottomRight,
-                                                child: Container(
-                                                  child: Padding(
-                                                    padding: EdgeInsets.only(right: 8, bottom: 8),
-                                                    child: Icon(Icons.event_seat),
+                                                      return Stack(
+                                                        alignment: Alignment.center,
+                                                        children: <Widget>[
+                                                          Positioned.fill(
+                                                              child: ClipRRect(
+                                                                borderRadius: BorderRadius.circular(16),
+                                                                child: Container(color: Colors.white),
+                                                              )),
+                                                          Positioned.fill(
+                                                              child: ClipRRect(
+                                                                borderRadius: BorderRadius.circular(16),
+                                                                child: avatar,
+                                                              )),
+                                                          Positioned.fill(
+                                                              child: ClipRRect(
+                                                                  borderRadius: BorderRadius.circular(16),
+                                                                  child: ImageFiltered(
+                                                                    imageFilter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                                                                    child: Container(
+                                                                        decoration: BoxDecoration(
+                                                                            color: ((showWolves &&
+                                                                                room.players[i].role is Wolf &&
+                                                                                room.players[i].role.runtimeType != WolfRobot &&
+                                                                                room.players[i].role.runtimeType != Gargoyle) ||
+                                                                                ((anotherIndex ?? -1) == i))
+                                                                                ? Colors.red.shade400.withOpacity(0.8)
+                                                                                : Colors.grey.shade200.withOpacity(0.4)),
+                                                                        child: Container()),
+                                                                  )
+                                                              )),
+                                                        ],
+                                                      );
+                                                    },
                                                   ),
-                                                  decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
+                                                ),
+                                              Container(
+                                                child: Padding(
+                                                  padding: EdgeInsets.only(left: 12, top: 12),
+                                                  child: Text((i + 1).toString(), style: TextStyle(fontWeight: FontWeight.bold)),
+                                                ),
+                                                decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
+                                              ),
+                                              if (mySeatNumber == i)
+                                                Align(
+                                                  alignment: Alignment.bottomRight,
+                                                  child: Container(
+                                                    child: Padding(
+                                                      padding: EdgeInsets.only(right: 8, bottom: 8),
+                                                      child: Icon(Icons.event_seat),
+                                                    ),
+                                                    decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
+                                                  ),
+                                                ),
+                                              Positioned.fill(
+                                                child: InkWell(
+                                                  splashColor: Colors.orangeAccent,
+                                                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                                                  child: Container(
+                                                    width: double.infinity,
+                                                    height: double.infinity,
+                                                  ),
                                                 ),
                                               ),
-                                            Positioned.fill(
-                                              child: InkWell(
-                                                onTap: () => onSeatTapped(i),
-                                                splashColor: Colors.orangeAccent,
-                                                borderRadius: BorderRadius.all(Radius.circular(16)),
-                                                child: Container(
-                                                  width: double.infinity,
-                                                  height: double.infinity,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
+                                        onTap: () => onSeatTapped(i),
                                       ),
                                     )
                                 ],

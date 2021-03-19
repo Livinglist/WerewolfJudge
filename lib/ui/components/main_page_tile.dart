@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 
 class MainPageTile extends StatelessWidget {
   final String title;
-  final VoidCallback onTap;
   final String iconTitle;
 
-  MainPageTile({@required this.title, @required this.onTap, this.iconTitle}) : assert(title != null);
+  MainPageTile({@required this.title, this.iconTitle}) : assert(title != null);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +15,6 @@ class MainPageTile extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(16)),
           elevation: 8,
           child: InkWell(
-            onTap: onTap,
             splashColor: Colors.orangeAccent,
             borderRadius: BorderRadius.all(Radius.circular(16)),
             child: Container(

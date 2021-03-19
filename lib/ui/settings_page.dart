@@ -105,7 +105,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             applicationName: "萌狼",
-            applicationVersion: "v0.1.1",
+            applicationVersion: "v0.1.2",
             aboutBoxChildren: <Widget>[
               ElevatedButton(
                 onPressed: () {
