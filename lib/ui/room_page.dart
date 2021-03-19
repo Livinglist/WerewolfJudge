@@ -1100,7 +1100,7 @@ class _RoomPageState extends State<RoomPage> {
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
       title: Text("开始游戏？"),
-      content: Text("所有座位已被占用。"),
+      content: Text("请将您的手机音量调整到最大。"),
       actions: [
         continueButton,
       ],
