@@ -327,7 +327,7 @@ class Room {
   String action(int target, {bool usePoison = false}) {
     print("${players[target]} is ${players[target]?.role ?? null} ${players[target] is HiddenWolf}");
     if (currentActionRole is Seer) {
-      if (actions.values.contains(Magician) && actions[Magician] != -1) {
+      if (actions.keys.contains(Magician) && actions[Magician] != -1) {
         int first = actions[Magician] % 100;
         int second = (actions[Magician] - first) ~/ 100;
 
