@@ -163,7 +163,8 @@ class FirebaseAuthProvider {
     var googleUser = await googleSignIn.signIn().then((value) {
       print("Google Sign In: $value");
       return value;
-    }, onError: (_) {
+    }, onError: (err) {
+      print("Google Sign In Error: $err");
       return null;
     });
 
@@ -176,8 +177,8 @@ class FirebaseAuthProvider {
       print("Firebase Sign In: ${cred.user}");
       return cred.user;
     }, onError: (Object error) {
-      print("Firebase Sign In Error");
-      if (error is PlatformException) {
+      print("Firebase Sign In Error: $error");
+      if (error is FirebaseAuthException) {
         if (error.code == "user-not-found") {
           return registerNewUser(email, password).then((firebaseUser) {
             return firebaseUser;

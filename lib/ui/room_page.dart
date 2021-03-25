@@ -1218,6 +1218,7 @@ class _RoomPageState extends State<RoomPage> {
     // show the dialog
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return alert;
       },

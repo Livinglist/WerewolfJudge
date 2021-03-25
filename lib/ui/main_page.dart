@@ -194,9 +194,7 @@ class _MainPageState extends State<MainPage> {
                     Container(
                       height: childHeight,
                       child: TapDownWrapper(
-                        child: MainPageTile(
-                            title: '返回上局',
-                            iconTitle: 'arrow-alt-circle-left'),
+                        child: MainPageTile(title: '返回上局', iconTitle: 'arrow-alt-circle-left'),
                         onTap: () {
                           if (user == null) {
                             ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -218,10 +216,8 @@ class _MainPageState extends State<MainPage> {
                     Container(
                       height: childHeight,
                       child: TapDownWrapper(
-                        child: MainPageTile(
-                            title: '设置',
-                            iconTitle: 'sliders-v-square'),
-                        onTap: (){
+                        child: MainPageTile(title: '设置', iconTitle: 'sliders-v-square'),
+                        onTap: () {
                           Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage()));
                         },
                       ),
@@ -298,15 +294,16 @@ class _MainPageState extends State<MainPage> {
             child: Column(
               children: <Widget>[
                 SizedBox(height: 24),
-                Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Transform.scale(
-                      scale: 1.24,
-                      child: SignInButton(Buttons.Apple, onPressed: () {
-                        Navigator.pop(context, SignInMethod.apple);
-                      }),
-                    )),
-                SizedBox(height: 12),
+                if (Platform.isIOS)
+                  Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Transform.scale(
+                        scale: 1.24,
+                        child: SignInButton(Buttons.Apple, onPressed: () {
+                          Navigator.pop(context, SignInMethod.apple);
+                        }),
+                      )),
+                if (Platform.isIOS) SizedBox(height: 12),
                 Padding(
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     child: Transform.scale(
