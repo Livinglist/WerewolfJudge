@@ -3,6 +3,7 @@
 ![iOS](https://img.shields.io/badge/iOS-11%20-blue)
 [![](https://img.shields.io/itunes/v/1525690109?label=App%20Store)](https://apps.apple.com/us/app/萌狼-狼人杀法官/id1525690109)
 [![Play Store](https://img.shields.io/badge/Play%20Store--yellow)](https://play.google.com/store/apps/details?id=jiaqifeng.werewolfjudge)
+[![App Store](https://img.shields.io/badge/Price-Free-orange)](https://img.shields.io/badge/Price-Free-orange)
 [![Visits Badge](https://badges.pufler.dev/visits/livinglist/WerewolfJudge)](https://badges.pufler.dev)
 [![GitHub](https://img.shields.io/github/stars/livinglist/WerewolfJudge?style=social)](https://img.shields.io/github/stars/livinglist/WerewolfJudge?style=social)
 
