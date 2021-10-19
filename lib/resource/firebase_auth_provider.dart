@@ -24,27 +24,35 @@ class FirebaseAuthProvider {
   );
 
   Future uploadUser(User firebaseUser) async {
-    return FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).set({
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(firebaseUser.uid)
+        .set({
       'email': firebaseUser.email,
     });
   }
 
   Future<User> registerNewUser(String email, String password) async {
-    return FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password).then((UserCredential cred) {
+    return FirebaseAuth.instance
+        .createUserWithEmailAndPassword(email: email, password: password)
+        .then((UserCredential cred) {
       //verify email address
       cred.user.sendEmailVerification();
 
       var name = getRandomName();
 
-      FirebaseFirestore.instance.collection(usersKey).doc(cred.user.uid).set({
-        userNameKey : name
-      });
+      FirebaseFirestore.instance
+          .collection(usersKey)
+          .doc(cred.user.uid)
+          .set({userNameKey: name});
       return cred.user;
     });
   }
 
   Future<User> signInUser(String email, String password) async {
-    return FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password).then((UserCredential cred) async {
+    return FirebaseAuth.instance
+        .signInWithEmailAndPassword(email: email, password: password)
+        .then((UserCredential cred) async {
       if (cred.user.emailVerified || true) {
         var firebaseUser = cred.user;
         return firebaseUser;
@@ -57,23 +65,6 @@ class FirebaseAuthProvider {
       print(err);
       throw err;
     });
-  }
-
-  ///Sign in user silently if previously signed in.
-  @Deprecated("FirebaseAuth will automatically sign in the user.")
-  Future<FirebaseUser> signInUserSilently() async {
-    final sharedPrefs = await SharedPreferences.getInstance();
-    String email = sharedPrefs.getString('email');
-    String password = sharedPrefs.getString('password');
-    print(email);
-    if (email != null && password != null) {
-      print(email);
-      return FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password).then((UserCredential cred) {
-        return cred.user;
-      }).catchError((_) {});
-    } else {
-      return Future.value(null);
-    }
   }
 
   Future signOut() async {
@@ -109,12 +100,17 @@ class FirebaseAuthProvider {
           password = sharedPrefs.getString(passwordKey);
 
           if (email == null) {
-            var snapshot = await FirebaseFirestore.instance.collection('appleIdToEmail').doc(userId).get();
+            var snapshot = await FirebaseFirestore.instance
+                .collection('appleIdToEmail')
+                .doc(userId)
+                .get();
             email = snapshot.data()[emailKey];
             password = snapshot.data()[passwordKey];
           }
 
-          return firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((userCred) {
+          return firebaseAuth
+              .signInWithEmailAndPassword(email: email, password: password)
+              .then((userCred) {
             return userCred.user;
           }, onError: (Object error) {
             if (error is FirebaseAuthException) {
@@ -130,15 +126,22 @@ class FirebaseAuthProvider {
             return null;
           });
         } else {
-          return firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((authResult) {
+          return firebaseAuth
+              .signInWithEmailAndPassword(email: email, password: password)
+              .then((authResult) {
             return authResult.user;
           }, onError: (Object error) {
             if (error is FirebaseAuthException) {
               if (error.code == 'user-not-found') {
-                return registerNewUser(appleIdCredential.email, appleIdCredential.email).then((firebaseUser) {
+                return registerNewUser(
+                        appleIdCredential.email, appleIdCredential.email)
+                    .then((firebaseUser) {
                   return firebaseUser;
                 }).whenComplete(() {
-                  FirebaseFirestore.instance.collection('appleIdToEmail').doc(userId).set({
+                  FirebaseFirestore.instance
+                      .collection('appleIdToEmail')
+                      .doc(userId)
+                      .set({
                     'email': email,
                     'password': password,
                   });
@@ -173,7 +176,9 @@ class FirebaseAuthProvider {
     var email = googleUser.email;
     var password = email;
 
-    return firebaseAuth.signInWithEmailAndPassword(email: email, password: email).then((cred) {
+    return firebaseAuth
+        .signInWithEmailAndPassword(email: email, password: email)
+        .then((cred) {
       print("Firebase Sign In: ${cred.user}");
       return cred.user;
     }, onError: (Object error) {
@@ -195,16 +200,18 @@ class FirebaseAuthProvider {
     return firebaseAuth.signInAnonymously().then((cred) {
       print("Firebase Sign In: ${cred.user}");
       var name = getRandomName();
-      FirebaseFirestore.instance.collection(usersKey).doc(cred.user.uid).set({
-        userNameKey : name
-      }, SetOptions(merge: true));
+      FirebaseFirestore.instance
+          .collection(usersKey)
+          .doc(cred.user.uid)
+          .set({userNameKey: name}, SetOptions(merge: true));
       return cred.user;
     }, onError: (Object error) {
       return null;
     });
   }
 
-  Future<User> signInPhoneNumber(String phoneNumber, AuthCredential authCredential) async {
+  Future<User> signInPhoneNumber(
+      String phoneNumber, AuthCredential authCredential) async {
     var firebaseAuth = FirebaseAuth.instance;
 
     var email = phoneNumber;
@@ -227,12 +234,15 @@ class FirebaseAuthProvider {
   }
 
   Future changeName(String name) {
-    this.currentUser.updateProfile(displayName: name);
+    this.currentUser.updateDisplayName(name);
     this.currentUser.reload();
-    return FirebaseFirestore.instance.collection(usersKey).doc(this.currentUser.uid).set({userNameKey: name});
+    return FirebaseFirestore.instance
+        .collection(usersKey)
+        .doc(this.currentUser.uid)
+        .set({userNameKey: name});
   }
 
-  static String getRandomName(){
+  static String getRandomName() {
     List<String> adjs = [
       '开心',
       '忧郁',

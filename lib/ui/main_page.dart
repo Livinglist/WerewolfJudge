@@ -15,6 +15,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:werewolfjudge/resource/firebase_auth_provider.dart';
 import 'package:werewolfjudge/resource/firestore_provider.dart';
 import 'package:werewolfjudge/resource/shared_prefs_provider.dart';
@@ -54,11 +55,15 @@ class _MainPageState extends State<MainPage> {
       appBar: AppBar(
           centerTitle: true,
           title: RichText(
-              text: TextSpan(style: TextStyle(color: Colors.black87, fontSize: 18), children: [
-            TextSpan(text: '狼杀'),
-            TextSpan(text: 'wolf-pack-battalion', style: TextStyle(fontFamily: 'Brands', fontSize: 36)),
-            TextSpan(text: '法官')
-          ]))),
+              text: TextSpan(
+                  style: TextStyle(color: Colors.black87, fontSize: 18),
+                  children: [
+                TextSpan(text: '狼杀'),
+                TextSpan(
+                    text: 'wolf-pack-battalion',
+                    style: TextStyle(fontFamily: 'Brands', fontSize: 36)),
+                TextSpan(text: '法官')
+              ]))),
       body: StreamBuilder(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (_, AsyncSnapshot<User> snapshot) {
@@ -74,7 +79,9 @@ class _MainPageState extends State<MainPage> {
                     elevation: 8,
                     borderRadius: BorderRadius.all(Radius.circular(16)),
                     child: InkWell(
-                      onTap: user == null ? showLoginOptionDialog : showLogoutBottomSheet,
+                      onTap: user == null
+                          ? showLoginOptionDialog
+                          : showLogoutBottomSheet,
                       borderRadius: BorderRadius.all(Radius.circular(16)),
                       splashColor: Colors.orangeAccent,
                       child: Container(
@@ -85,13 +92,16 @@ class _MainPageState extends State<MainPage> {
                               children: <Widget>[
                                 if (user != null)
                                   FutureBuilder(
-                                    future: FirestoreProvider.instance.getAvatar(user.uid),
-                                    builder: (_, AsyncSnapshot<String> urlSnapshot) {
+                                    future: FirestoreProvider.instance
+                                        .getAvatar(user.uid),
+                                    builder:
+                                        (_, AsyncSnapshot<String> urlSnapshot) {
                                       if (urlSnapshot.hasData) {
                                         var url = urlSnapshot.data;
 
                                         return ClipRRect(
-                                          borderRadius: BorderRadius.circular(13),
+                                          borderRadius:
+                                              BorderRadius.circular(13),
                                           child: FadeInImage.memoryNetwork(
                                             placeholder: kTransparentImage,
                                             image: url,
@@ -101,9 +111,11 @@ class _MainPageState extends State<MainPage> {
                                           ),
                                         );
                                       } else {
-                                        String rawSvg = Jdenticon.toSvg(user.uid);
+                                        String rawSvg =
+                                            Jdenticon.toSvg(user.uid);
                                         return ClipRRect(
-                                            borderRadius: BorderRadius.circular(13),
+                                            borderRadius:
+                                                BorderRadius.circular(13),
                                             child: Stack(
                                               children: [
                                                 Container(
@@ -134,7 +146,8 @@ class _MainPageState extends State<MainPage> {
                                 if (user == null) Text("登陆"),
                                 if (user != null)
                                   FutureBuilder(
-                                    future: FirestoreProvider.instance.fetchPlayerDisplayName(user.uid),
+                                    future: FirestoreProvider.instance
+                                        .fetchPlayerDisplayName(user.uid),
                                     builder: (_, snapshot) {
                                       if (snapshot.hasData) {
                                         userName = snapshot.data;
@@ -146,9 +159,107 @@ class _MainPageState extends State<MainPage> {
                                   ),
                               ],
                             )),
-                        decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
+                        decoration: BoxDecoration(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(16))),
                       ),
                     )),
+              ),
+              FutureBuilder(
+                future: FirestoreProvider.instance.fetchShowAd(),
+                builder: (context, showAdSnapshot) {
+                  if (showAdSnapshot.hasData && showAdSnapshot.data) {
+                    return TapDownWrapper(
+                      onTap: () {
+                        final base = Uri.encodeFull(
+                            'https://apps.apple.com/us/app/offerly/id1585937743');
+                        canLaunch(base).then((can) {
+                          if (can) {
+                            launch(base, forceSafariVC: true);
+                          }
+                        });
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Material(
+                          color: Colors.orange,
+                          elevation: 8,
+                          borderRadius: BorderRadius.all(Radius.circular(16)),
+                          child: Container(
+                            width: double.infinity,
+                            child: Padding(
+                              padding:
+                                  EdgeInsets.only(left: 8, top: 4, bottom: 4),
+                              child: Row(
+                                children: <Widget>[
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(13),
+                                    child: Container(
+                                      height: 26,
+                                      width: 26,
+                                      margin: EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(24)),
+                                        image: DecorationImage(
+                                          image: Image.asset(
+                                            'assets/offerly_icon.png',
+                                            fit: BoxFit.contain,
+                                          ).image,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 8,
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      FutureBuilder(
+                                        future: FirestoreProvider.instance
+                                            .fetchAdText(),
+                                        builder: (_, adTextSnapshot) {
+                                          if (adTextSnapshot.hasData) {
+                                            return Text(adTextSnapshot.data);
+                                          } else {
+                                            return Container();
+                                          }
+                                        },
+                                      ),
+                                      FutureBuilder(
+                                        future: FirestoreProvider.instance
+                                            .fetchSubAdText(),
+                                        builder: (_, adTextSnapshot) {
+                                          if (adTextSnapshot.hasData) {
+                                            return Text(
+                                              adTextSnapshot.data,
+                                              style: TextStyle(
+                                                  color: Colors.black
+                                                      .withOpacity(0.7)),
+                                            );
+                                          } else {
+                                            return Container();
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(16))),
+                          ),
+                        ),
+                      ),
+                    );
+                  } else {
+                    return Container();
+                  }
+                },
               ),
               Table(
                 columnWidths: {
@@ -165,27 +276,36 @@ class _MainPageState extends State<MainPage> {
                             ScaffoldMessenger.of(context).hideCurrentSnackBar();
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text("请先登陆"),
-                              action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
+                              action: SnackBarAction(
+                                  label: '登陆',
+                                  onPressed: showLoginOptionDialog),
                             ));
                           } else
                             showEnterRoomDialog();
                         },
-                        child: MainPageTile(title: '进入房间', iconTitle: 'person-booth'),
+                        child: MainPageTile(
+                            title: '进入房间', iconTitle: 'person-booth'),
                       ),
                     ),
                     Container(
                       height: childHeight,
                       child: TapDownWrapper(
-                        child: MainPageTile(title: '创建房间', iconTitle: 'concierge-bell'),
+                        child: MainPageTile(
+                            title: '创建房间', iconTitle: 'concierge-bell'),
                         onTap: () {
                           if (user == null) {
                             ScaffoldMessenger.of(context).hideCurrentSnackBar();
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text("请先登陆"),
-                              action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
+                              action: SnackBarAction(
+                                  label: '登陆',
+                                  onPressed: showLoginOptionDialog),
                             ));
                           } else
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => ConfigPage()));
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => ConfigPage()));
                         },
                       ),
                     ),
@@ -194,19 +314,28 @@ class _MainPageState extends State<MainPage> {
                     Container(
                       height: childHeight,
                       child: TapDownWrapper(
-                        child: MainPageTile(title: '返回上局', iconTitle: 'arrow-alt-circle-left'),
+                        child: MainPageTile(
+                            title: '返回上局', iconTitle: 'arrow-alt-circle-left'),
                         onTap: () {
                           if (user == null) {
                             ScaffoldMessenger.of(context).hideCurrentSnackBar();
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text("请先登陆"),
-                              action: SnackBarAction(label: '登陆', onPressed: showLoginOptionDialog),
+                              action: SnackBarAction(
+                                  label: '登陆',
+                                  onPressed: showLoginOptionDialog),
                             ));
                           } else {
                             var lastRoomNumber = getLastRoomNumber();
-                            FirestoreProvider.instance.checkRoom(lastRoomNumber).then((isValid) {
+                            FirestoreProvider.instance
+                                .checkRoom(lastRoomNumber)
+                                .then((isValid) {
                               if (isValid) {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: lastRoomNumber)));
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => RoomPage(
+                                            roomNumber: lastRoomNumber)));
                               }
                             });
                           }
@@ -216,9 +345,13 @@ class _MainPageState extends State<MainPage> {
                     Container(
                       height: childHeight,
                       child: TapDownWrapper(
-                        child: MainPageTile(title: '设置', iconTitle: 'sliders-v-square'),
+                        child: MainPageTile(
+                            title: '设置', iconTitle: 'sliders-v-square'),
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage()));
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => SettingsPage()));
                         },
                       ),
                     )
@@ -243,7 +376,10 @@ class _MainPageState extends State<MainPage> {
                                 Positioned(
                                   left: 12,
                                   top: 12,
-                                  child: Text('使用说明', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                  child: Text('使用说明',
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold)),
                                 ),
                                 Positioned(
                                   left: 12,
@@ -257,10 +393,13 @@ class _MainPageState extends State<MainPage> {
                                 )
                               ],
                             ),
-                            decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(16))),
+                            decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(16))),
                           ),
                         )),
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => InstructionPage())),
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => InstructionPage())),
                   ),
                 ),
               ),
@@ -353,7 +492,8 @@ class _MainPageState extends State<MainPage> {
       },
       transitionBuilder: (_, anim, __, child) {
         return SlideTransition(
-          position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(CurvedAnimation(parent: anim, curve: SpringCurve.underDamped)),
+          position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(
+              CurvedAnimation(parent: anim, curve: SpringCurve.underDamped)),
           child: child,
         );
       },
@@ -379,7 +519,9 @@ class _MainPageState extends State<MainPage> {
             setState(() {
               shouldShowBanner = true;
             });
-            FirebaseAuthProvider.instance.signInAnonymously().then(showSignInStatus);
+            FirebaseAuthProvider.instance
+                .signInAnonymously()
+                .then(showSignInStatus);
             break;
           default:
             throw Exception();
@@ -440,7 +582,8 @@ class _MainPageState extends State<MainPage> {
                     color: Colors.transparent,
                     child: TextField(
                       controller: textEditingController,
-                      maxLengthEnforcement: MaxLengthEnforcement.truncateAfterCompositionEnds,
+                      maxLengthEnforcement:
+                          MaxLengthEnforcement.truncateAfterCompositionEnds,
                       maxLength: 40,
                       maxLines: 1,
                       autofocus: true,
@@ -456,7 +599,8 @@ class _MainPageState extends State<MainPage> {
                       color: Colors.transparent,
                       child: ElevatedButton(
                         child: Padding(
-                          padding: EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 12),
+                          padding: EdgeInsets.only(
+                              top: 12, left: 24, right: 24, bottom: 12),
                           child: Text('改变名称', style: TextStyle(fontSize: 18)),
                         ),
                         style: OutlinedButton.styleFrom(
@@ -482,13 +626,19 @@ class _MainPageState extends State<MainPage> {
       },
       transitionBuilder: (_, anim, __, child) {
         return SlideTransition(
-          position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(CurvedAnimation(parent: anim, curve: SpringCurve.underDamped)),
+          position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(
+              CurvedAnimation(parent: anim, curve: SpringCurve.underDamped)),
           child: child,
         );
       },
     ).then((phoneNumber) {
       debugPrint("The phone number is $phoneNumber");
-      if (phoneNumber != null) Navigator.push(context, MaterialPageRoute(builder: (_) => CodeVerificationPage(phoneNumber: phoneNumber)));
+      if (phoneNumber != null)
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) =>
+                    CodeVerificationPage(phoneNumber: phoneNumber)));
     });
   }
 
@@ -523,7 +673,8 @@ class _MainPageState extends State<MainPage> {
                       autofillHints: [AutofillHints.telephoneNumber],
                       controller: textEditingController,
                       keyboardType: TextInputType.number,
-                      maxLengthEnforcement: MaxLengthEnforcement.truncateAfterCompositionEnds,
+                      maxLengthEnforcement:
+                          MaxLengthEnforcement.truncateAfterCompositionEnds,
                       maxLength: 12,
                       maxLines: 1,
                       autofocus: true,
@@ -540,7 +691,8 @@ class _MainPageState extends State<MainPage> {
                       color: Colors.transparent,
                       child: ElevatedButton(
                         child: Padding(
-                          padding: EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 12),
+                          padding: EdgeInsets.only(
+                              top: 12, left: 24, right: 24, bottom: 12),
                           child: Text('发送验证码', style: TextStyle(fontSize: 18)),
                         ),
                         style: OutlinedButton.styleFrom(
@@ -549,7 +701,8 @@ class _MainPageState extends State<MainPage> {
                           ),
                         ),
                         onPressed: () {
-                          var number = textEditingController.text.replaceAll('-', '');
+                          var number =
+                              textEditingController.text.replaceAll('-', '');
                           Navigator.pop(context, number);
                         },
                       ),
@@ -561,7 +714,8 @@ class _MainPageState extends State<MainPage> {
       },
       transitionBuilder: (_, anim, __, child) {
         return SlideTransition(
-          position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(CurvedAnimation(parent: anim, curve: SpringCurve.underDamped)),
+          position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(
+              CurvedAnimation(parent: anim, curve: SpringCurve.underDamped)),
           child: child,
         );
       },
@@ -571,7 +725,11 @@ class _MainPageState extends State<MainPage> {
         shouldShowBanner = true;
       });
       if (phoneNumber != null)
-        return Navigator.push<User>(context, MaterialPageRoute(builder: (_) => CodeVerificationPage(phoneNumber: phoneNumber)));
+        return Navigator.push<User>(
+            context,
+            MaterialPageRoute(
+                builder: (_) =>
+                    CodeVerificationPage(phoneNumber: phoneNumber)));
       return null;
     });
   }
@@ -579,7 +737,8 @@ class _MainPageState extends State<MainPage> {
   void showEnterRoomDialog() {
     final TextEditingController textEditingController = TextEditingController();
 
-    StreamController<ErrorAnimationType> errorController = StreamController<ErrorAnimationType>();
+    StreamController<ErrorAnimationType> errorController =
+        StreamController<ErrorAnimationType>();
 
     showGeneralDialog<String>(
       barrierLabel: "Barrier",
@@ -603,7 +762,8 @@ class _MainPageState extends State<MainPage> {
               children: <Widget>[
                 Padding(
                   padding: EdgeInsets.all(12),
-                  child: Material(color: Colors.transparent, child: Text('输入房间号码')),
+                  child: Material(
+                      color: Colors.transparent, child: Text('输入房间号码')),
                 ),
                 SizedBox(height: 24),
                 Padding(
@@ -635,11 +795,17 @@ class _MainPageState extends State<MainPage> {
                         errorAnimationController: errorController,
                         controller: textEditingController,
                         onCompleted: (roomNum) {
-                          FirestoreProvider.instance.checkRoom(roomNum).then((isValid) {
+                          FirestoreProvider.instance
+                              .checkRoom(roomNum)
+                              .then((isValid) {
                             if (isValid) {
                               errorController.close();
                               Navigator.pop(context);
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => RoomPage(roomNumber: roomNum)));
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          RoomPage(roomNumber: roomNum)));
                             } else {
                               errorController.add(ErrorAnimationType.shake);
                               textEditingController.clear();
@@ -664,7 +830,8 @@ class _MainPageState extends State<MainPage> {
       },
       transitionBuilder: (_, anim, __, child) {
         return SlideTransition(
-          position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(CurvedAnimation(parent: anim, curve: SpringCurve.underDamped)),
+          position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(
+              CurvedAnimation(parent: anim, curve: SpringCurve.underDamped)),
           child: child,
         );
       },
@@ -753,7 +920,7 @@ class _MainPageState extends State<MainPage> {
                     Navigator.pop(context);
                     pickAvatar().then((value) {
                       if (value == null) return;
-                      value.onComplete.then((value) {
+                      value.whenComplete(() {
                         setState(() {});
                       });
                     });
@@ -783,9 +950,10 @@ class _MainPageState extends State<MainPage> {
     return SharedPreferencesProvider.instance.getLastRoom();
   }
 
-  Future<StorageUploadTask> pickAvatar() async {
+  Future<UploadTask> pickAvatar() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.getImage(source: ImageSource.gallery, imageQuality: 85);
+    final pickedFile =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
 
     if (pickedFile == null) return null;
 
@@ -801,13 +969,15 @@ class _MainPageState extends State<MainPage> {
             toolbarWidgetColor: Colors.white,
             initAspectRatio: CropAspectRatioPreset.square,
             lockAspectRatio: false),
-        iosUiSettings: IOSUiSettings(minimumAspectRatio: 1.0, aspectRatioLockEnabled: true));
+        iosUiSettings: IOSUiSettings(
+            minimumAspectRatio: 1.0, aspectRatioLockEnabled: true));
 
     if (croppedFile == null) return null;
 
     var bytes = await croppedFile.readAsBytes();
     var user = FirebaseAuthProvider.instance.currentUser;
 
-    return FirestoreProvider.instance.uploadAvatar(user.uid, bytes);
+    return Future.value(
+        FirestoreProvider.instance.uploadAvatar(user.uid, bytes));
   }
 }

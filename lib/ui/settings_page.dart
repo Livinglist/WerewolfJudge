@@ -27,7 +27,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
     showArtwork = SharedPreferencesProvider.instance.getArtworkEnabled();
 
-    funFact = funFacts.elementAt(Random(DateTime.now().microsecond).nextInt(funFacts.length));
+    funFact = funFacts
+        .elementAt(Random(DateTime.now().microsecond).nextInt(funFacts.length));
 
     super.initState();
   }
@@ -61,7 +62,8 @@ class _SettingsPageState extends State<SettingsPage> {
                               Text("Github"),
                             ],
                           ),
-                          onPressed: () => launch('https://github.com/Livinglist/WerewolfJudge/issues/new'),
+                          onPressed: () => launch(
+                              'https://github.com/Livinglist/WerewolfJudge/issues/new'),
                         ),
                         ElevatedButton(
                           child: Row(
@@ -84,14 +86,16 @@ class _SettingsPageState extends State<SettingsPage> {
           Container(
             height: 240,
             child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("¯\\_(ツ)_/¯", textAlign: TextAlign.center),
-                  Text(funFact, textAlign: TextAlign.center,),
-                ],
-              )
-            ),
+                child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("¯\\_(ツ)_/¯", textAlign: TextAlign.center),
+                Text(
+                  funFact,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            )),
           ),
           Divider(height: 0),
           SwitchListTile(
@@ -157,7 +161,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void onSendEmailTapped() async {
     final Uri emailUri = Uri(
-        scheme: 'mailto', path: 'werewolfJudgeBug@gmail.com', queryParameters: {'subject': '什么垃圾app，又找到了一个bug！', 'body': '请大致描述bug发生的场景及激发bug的行为：'});
+        scheme: 'mailto',
+        path: 'werewolfJudgeBug@gmail.com',
+        queryParameters: {
+          'subject': '什么垃圾app，又找到了一个bug！',
+          'body': '请大致描述bug发生的场景及激发bug的行为：'
+        });
 
     var res = await canLaunch(emailUri.toString());
 
@@ -168,7 +177,10 @@ class _SettingsPageState extends State<SettingsPage> {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('出现了未知的问题'),
-        action: SnackBarAction(label: '这真是太棒了', onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar()),
+        action: SnackBarAction(
+            label: '这真是太棒了',
+            onPressed: () =>
+                ScaffoldMessenger.of(context).hideCurrentSnackBar()),
       ));
     }
   }

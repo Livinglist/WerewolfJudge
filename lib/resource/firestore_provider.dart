@@ -20,11 +20,36 @@ class FirestoreProvider {
 
   FirestoreProvider._();
 
+  Future<bool> fetchShowAd() async {
+    return FirebaseFirestore.instance
+        .collection('config')
+        .doc('adConfig')
+        .get()
+        .then((d) => d.data()['showAd']);
+  }
+
+  Future<String> fetchAdText() async {
+    return FirebaseFirestore.instance
+        .collection('config')
+        .doc('adConfig')
+        .get()
+        .then((d) => d.data()['adText']);
+  }
+
+  Future<String> fetchSubAdText() async {
+    return FirebaseFirestore.instance
+        .collection('config')
+        .doc('adConfig')
+        .get()
+        .then((d) => d.data()['subAdText']);
+  }
+
   Future<String> fetchPlayerDisplayName(String uid) async {
-    DocumentReference docRef = FirebaseFirestore.instance.collection(usersKey).doc(uid);
+    DocumentReference docRef =
+        FirebaseFirestore.instance.collection(usersKey).doc(uid);
     DocumentSnapshot docSnap = await docRef.get();
 
-    if (docSnap.exists) return docSnap.data()[userNameKey] ?? '无名氏';
+    if (docSnap.exists) return (docSnap.data() as Map)[userNameKey] ?? '无名氏';
 
     return '无名氏';
   }
@@ -40,8 +65,15 @@ class FirestoreProvider {
       docRef = FirebaseFirestore.instance.collection(rooms).doc(roomNum);
       docSnap = await docRef.get();
     } while (docSnap.exists &&
-        (DateTime.fromMillisecondsSinceEpoch(docSnap.data()[timestampKey]).toLocal().difference(DateTime.now()).inHours <= 2 ||
-            RoomStatus.values.elementAt(docSnap.data()[roomStatusKey]) != RoomStatus.terminated));
+        (DateTime.fromMillisecondsSinceEpoch(
+                        (docSnap.data() as Map)[timestampKey])
+                    .toLocal()
+                    .difference(DateTime.now())
+                    .inHours <=
+                2 ||
+            RoomStatus.values
+                    .elementAt((docSnap.data() as Map)[roomStatusKey]) !=
+                RoomStatus.terminated));
 
     docRef.delete().whenComplete(() => docRef.set({
           actionsKey: {},
@@ -51,7 +83,8 @@ class FirestoreProvider {
           hostUidKey: uid,
           roomStatus: RoomStatus.seating.index,
           rolesKey: template.roles.map((e) => Player.roleToIndex(e)).toList(),
-          playersKey: Map.fromEntries(List.generate(template.roles.length, (index) => MapEntry(index.toString(), null))),
+          playersKey: Map.fromEntries(List.generate(template.roles.length,
+              (index) => MapEntry(index.toString(), null))),
           currentActionerIndexKey: 0,
         }));
 
@@ -66,9 +99,17 @@ class FirestoreProvider {
 
   ///Check whether or not the room number is valid.
   Future<bool> checkRoom(String roomNum) async {
-    return FirebaseFirestore.instance.collection(rooms).doc(roomNum).get().then((value) {
+    return FirebaseFirestore.instance
+        .collection(rooms)
+        .doc(roomNum)
+        .get()
+        .then((value) {
       if (value.exists == false) return false;
-      if (DateTime.fromMillisecondsSinceEpoch(value.data()[timestampKey]).toLocal().difference(DateTime.now()).inHours >= 2) return false;
+      if (DateTime.fromMillisecondsSinceEpoch(value.data()[timestampKey])
+              .toLocal()
+              .difference(DateTime.now())
+              .inHours >=
+          2) return false;
 
       SharedPreferencesProvider.instance.setLastRoom(roomNum);
 
@@ -79,7 +120,8 @@ class FirestoreProvider {
   Future<void> terminateRoom(String roomNum) async {
     var docRef = FirebaseFirestore.instance.collection(rooms).doc(roomNum);
 
-    return docRef.set({roomStatusKey: RoomStatus.terminated.index}, SetOptions(merge: true));
+    return docRef.set(
+        {roomStatusKey: RoomStatus.terminated.index}, SetOptions(merge: true));
   }
 
   Stream<Room> fetchRoom(String roomNum) {
@@ -88,42 +130,50 @@ class FirestoreProvider {
         .collection(rooms)
         .doc(roomNum)
         .snapshots()
-        .transform<Room>(StreamTransformer.fromHandlers(handleData: handleData));
+        .transform<Room>(
+            StreamTransformer.fromHandlers(handleData: handleData));
   }
 
-  Future<int> takeSeat(String roomNumber, int seatNumber, [int currentSeatNumber]) async {
-    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(roomNumber);
+  Future<int> takeSeat(String roomNumber, int seatNumber,
+      [int currentSeatNumber]) async {
+    DocumentReference docRef =
+        FirebaseFirestore.instance.collection(rooms).doc(roomNumber);
     DocumentSnapshot docSnap = await docRef.get();
     String playerUid = FirebaseAuthProvider.instance.currentUser.uid;
 
-    if (docSnap.data()[playersKey][seatNumber.toString()] != null) {
+    if ((docSnap.data() as Map)[playersKey][seatNumber.toString()] != null) {
       return -1;
     }
 
-    int roleIndex = docSnap.data()[rolesKey][seatNumber];
+    int roleIndex = (docSnap.data() as Map)[rolesKey][seatNumber];
     Role role = Player.indexToRole(roleIndex);
 
     if (currentSeatNumber != null) {
       return docRef.set({
         playersKey: {
-          seatNumber.toString(): Player(uid: playerUid, seatNumber: seatNumber, role: role).toMap(),
+          seatNumber.toString():
+              Player(uid: playerUid, seatNumber: seatNumber, role: role)
+                  .toMap(),
           currentSeatNumber.toString(): null,
         },
       }, SetOptions(merge: true)).then((value) => 0);
     } else {
       return docRef.set({
         playersKey: {
-          seatNumber.toString(): Player(uid: playerUid, seatNumber: seatNumber, role: role).toMap(),
+          seatNumber.toString():
+              Player(uid: playerUid, seatNumber: seatNumber, role: role)
+                  .toMap(),
         },
       }, SetOptions(merge: true)).then((value) => 0);
     }
   }
 
   Future<int> leaveSeat(String roomNumber, int seatNumber) async {
-    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(roomNumber);
+    DocumentReference docRef =
+        FirebaseFirestore.instance.collection(rooms).doc(roomNumber);
     DocumentSnapshot docSnap = await docRef.get();
 
-    if (docSnap.data()[playersKey][seatNumber.toString()] == null) {
+    if ((docSnap.data() as Map)[playersKey][seatNumber.toString()] == null) {
       return -1;
     }
 
@@ -140,7 +190,10 @@ class FirestoreProvider {
     String roomNumber;
 
     do {
-      roomNumber = (Random(DateTime.now().millisecondsSinceEpoch).nextDouble() * 10000).toInt().toString();
+      roomNumber =
+          (Random(DateTime.now().millisecondsSinceEpoch).nextDouble() * 10000)
+              .toInt()
+              .toString();
     } while (roomNumber.length != 4);
 
     return roomNumber;
@@ -148,15 +201,16 @@ class FirestoreProvider {
 
   static void handleData(DocumentSnapshot docSnap, Sink sink) {
     print("asd1");
-    var data = docSnap.data();
-    var actions = (data[actionsKey] as Map<String, dynamic>)
-        .map((key, value) => MapEntry(Player.indexToRole(int.parse(key)).runtimeType, value as int));
+    var data = docSnap.data() as Map;
+    var actions = (data[actionsKey] as Map<String, dynamic>).map((key, value) =>
+        MapEntry(Player.indexToRole(int.parse(key)).runtimeType, value as int));
     print("asd2");
     var roomNumber = docSnap.id;
     var roomStatus = RoomStatus.values.elementAt(data[roomStatusKey] ?? 0);
     var hostUid = data[hostUidKey];
     var roles = (data[rolesKey]).map((e) => Player.indexToRole(e)).toList();
-    var players = (data[playersKey] as Map).map((k, e) => MapEntry(int.parse(k), e == null ? null : Player.fromMap(e)));
+    var players = (data[playersKey] as Map).map(
+        (k, e) => MapEntry(int.parse(k), e == null ? null : Player.fromMap(e)));
     var template = CustomTemplate.from(roles: roles);
     var timestamp = data[timestampKey];
     var currentActionerIndex = data[currentActionerIndexKey] ?? 0;
@@ -194,25 +248,32 @@ class FirestoreProvider {
   }
 
   void prepare() {
-    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
+    DocumentReference docRef =
+        FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
 
-    docRef.set({roomStatusKey: RoomStatus.seated.index}, SetOptions(merge: true));
+    docRef
+        .set({roomStatusKey: RoomStatus.seated.index}, SetOptions(merge: true));
   }
 
   void startGame() {
-    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
+    DocumentReference docRef =
+        FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
 
-    docRef.set({roomStatusKey: RoomStatus.ongoing.index, currentActionerIndexKey: 0}, SetOptions(merge: true));
+    docRef.set(
+        {roomStatusKey: RoomStatus.ongoing.index, currentActionerIndexKey: 0},
+        SetOptions(merge: true));
   }
 
   void prepareAnotherRound({String uid, Template template}) async {
-    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
+    DocumentReference docRef =
+        FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
 
     //docRef.set({roomStatusKey: RoomStatus.seated.index}, SetOptions(merge: true));
 
     DocumentSnapshot docSnap = await docRef.get();
 
-    Map<String, dynamic> currentRoleToPlayerMap = docSnap.data()[playersKey];
+    Map<String, dynamic> currentRoleToPlayerMap =
+        (docSnap.data() as Map)[playersKey];
 
     docRef.set({
       actionsKey: {},
@@ -222,10 +283,11 @@ class FirestoreProvider {
       hostUidKey: uid,
       roomStatus: RoomStatus.seating.index,
       rolesKey: template.roles.map((e) => Player.roleToIndex(e)).toList(),
-      playersKey: Map.fromEntries(List.generate(template.roles.length, (index){
+      playersKey: Map.fromEntries(List.generate(template.roles.length, (index) {
         var playerMap = currentRoleToPlayerMap[index.toString()];
 
-        playerMap[roleKey] = Player.roleToIndex(template.roles.elementAt(index));
+        playerMap[roleKey] =
+            Player.roleToIndex(template.roles.elementAt(index));
 
         return MapEntry(index.toString(), playerMap);
       })),
@@ -233,11 +295,14 @@ class FirestoreProvider {
     });
   }
 
-  void performAction(Role role, int targetSeat, int currentActionerIndex, {bool usePoison = false}) {
-    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
+  void performAction(Role role, int targetSeat, int currentActionerIndex,
+      {bool usePoison = false}) {
+    DocumentReference docRef =
+        FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
 
     if (targetSeat == null) {
-      docRef.set({currentActionerIndexKey: currentActionerIndex}, SetOptions(merge: true));
+      docRef.set({currentActionerIndexKey: currentActionerIndex},
+          SetOptions(merge: true));
     } else {
       docRef.set({
         actionsKey: {
@@ -248,16 +313,20 @@ class FirestoreProvider {
     }
   }
 
-  Future<void> checkInForLuckySonVerifications({int myIndex, int totalPlayers, int currentActionerIndex}) async {
-    DocumentReference docRef = FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
+  Future<void> checkInForLuckySonVerifications(
+      {int myIndex, int totalPlayers, int currentActionerIndex}) async {
+    DocumentReference docRef =
+        FirebaseFirestore.instance.collection(rooms).doc(currentRoomNumber);
     DocumentSnapshot docSnap = await docRef.get();
 
-    var count = docSnap.data()[luckySonVerificationsCountKey];
+    var count = (docSnap.data() as Map)[luckySonVerificationsCountKey];
 
     if (count != null && count + 1 == totalPlayers)
-      docRef.set({currentActionerIndexKey: currentActionerIndex}, SetOptions(merge: true));
+      docRef.set({currentActionerIndexKey: currentActionerIndex},
+          SetOptions(merge: true));
     else
-      docRef.set({luckySonVerificationsCountKey: FieldValue.increment(1)}, SetOptions(merge: true));
+      docRef.set({luckySonVerificationsCountKey: FieldValue.increment(1)},
+          SetOptions(merge: true));
   }
 
   Future<String> getAvatar(String uid) async {
@@ -271,12 +340,13 @@ class FirestoreProvider {
     }, onError: (_) => null);
   }
 
-  StorageUploadTask uploadAvatar(String uid, List<int> imageBytes) {
-    final StorageReference storageReference = FirebaseStorage().ref().child('profile_pics/$uid');
+  UploadTask uploadAvatar(String uid, List<int> imageBytes) {
+    final storageReference =
+        FirebaseStorage.instance.ref().child('profile_pics/$uid');
 
-    final StorageUploadTask uploadTask = storageReference.putData(imageBytes);
+    final uploadTask = storageReference.putData(imageBytes);
 
-    uploadTask.onComplete.then((value) {
+    uploadTask.then((value) {
       value.ref.getDownloadURL().then((url) => avatarLinkCache[uid] = url);
     });
 
@@ -284,6 +354,10 @@ class FirestoreProvider {
   }
 
   Future deleteAvatar(String uid) {
-    return FirebaseStorage().ref().child('profile_pics/$uid').delete().then((_) => avatarLinkCache.remove(uid));
+    return FirebaseStorage.instance
+        .ref()
+        .child('profile_pics/$uid')
+        .delete()
+        .then((_) => avatarLinkCache.remove(uid));
   }
 }

@@ -19,7 +19,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  audioplayers: 0.17.4
+  audioplayers: 0.20.1
   firebase_core:
   apple_sign_in:
   font_awesome_flutter:
@@ -30,11 +30,11 @@ dependencies:
   pin_code_fields:
   wakelock:
   rxdart:
-  url_launcher:
+  url_launcher: 6.0.12
   flutter_signin_button:
   image_cropper:
   firebase_storage:
-  path_provider: ^1.6.22
+  path_provider: 2.0.5
   image_picker:
   transparent_image:
   vibration:
@@ -125,6 +125,7 @@ flutter:
     - assets/images/wolf_queen.png
     - assets/images/black_trader.png
     - assets/app_icon.png
+    - assets/offerly_icon.png
 
   fonts:
     - family: Brands
